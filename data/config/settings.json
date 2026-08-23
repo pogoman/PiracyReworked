@@ -53,6 +53,19 @@
 	"piratepat_defenseScaling": true,
 	"piratepat_defenseFleetSizeMax": 2.0,
 
+	# --- Respite piercing ---
+	# Piracy Respite ("pirates are wary of attacking you") is vanilla's
+	# permanent reward for defeating the pirate colony crisis. Wariness fades
+	# when the war chest overflows with YOUR money: once your lifetime
+	# contribution and your share of the underworld's income both exceed these
+	# thresholds, bases funded by the chest resume preying on your colonies
+	# (pirate activity condition: accessibility/stability drain and ambient
+	# fleets - never raids). Your share dilutes over time if you stop
+	# contributing, so laying off eventually restores the respite.
+	"piratepat_respitePiercing": true,
+	"piratepat_pierceMinContribution": 500000,
+	"piratepat_pierceMinShare": 0.25,
+
 	# --- Intel ---
 	"piratepat_intelShowExact": true,
 

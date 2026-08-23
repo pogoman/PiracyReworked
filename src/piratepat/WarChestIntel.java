@@ -154,6 +154,14 @@ public class WarChestIntel extends BaseIntelPlugin {
 			info.addPara("You have contributed nothing to the pirate war economy. So far.", opad);
 		}
 
+		if (PatronageActivityIntel.isPiercingActive()) {
+			info.addPara("The underworld's wariness of you has faded - its war chest has never "
+					+ "been deeper, and you filled it. Bases funded by the chest no longer spare "
+					+ "your colonies their attentions. Your share of their income dilutes over "
+					+ "time if you stop contributing.", 3f, neg,
+					"wariness of you has faded");
+		}
+
 		int launched = PiratePatData.getRaidsLaunched();
 		if (launched > 0) {
 			info.addPara("Raids financed: %s, of which %s succeeded and %s were repelled. "

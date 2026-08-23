@@ -38,6 +38,17 @@ operating), the pirates expand - up to a cap far above vanilla's 3.
   their income. Kill them all while the chest is low and piracy goes dormant -
   and the only thing that can revive it is *your* black market money.
 
+**Fading wariness (respite piercing).** Piracy Respite - vanilla's permanent
+reward for defeating the pirate colony crisis - says pirates are *wary* of
+attacking you. Wariness fades when the war chest overflows with your own
+money: once your lifetime contribution and your share of the underworld's
+income cross the configured thresholds (500k / 25% by default), chest-funded
+bases resume preying on your colonies - the vanilla pirate activity condition
+(accessibility/stability drain, ambient fleets), never raids. Your share
+dilutes as the pirate economy earns its own money, so laying off the black
+market eventually restores the respite. Adopted vanilla bases always honor
+respite; only bases the chest purchased are this bold.
+
 **Scaling defenses.** Vanilla base stations get restored as base tier rises,
 but their defenders never grow past 2 light + 1 medium patrol. Here, tier 3+
 bases field additional medium/heavy patrols and bigger fleets - a tier 5 base

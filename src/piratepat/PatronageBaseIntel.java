@@ -22,6 +22,25 @@ public class PatronageBaseIntel extends PirateBaseIntel {
 		super(system, factionId, tier);
 	}
 
+	/**
+	 * Same as vanilla, but the pirate-activity intel this base issues for its
+	 * target system is the respite-piercing variant.
+	 */
+	@Override
+	public void updateTarget() {
+		StarSystemAPI newTarget = pickTarget();
+		if (newTarget == target) return;
+
+		clearTarget();
+
+		target = newTarget;
+		monthsWithSameTarget = 0;
+
+		if (target != null) {
+			new PatronageActivityIntel(target, this);
+		}
+	}
+
 	@Override
 	public void startRaid(StarSystemAPI target, float raidFP) {
 		if (!PiratePatConfig.enabled()) {

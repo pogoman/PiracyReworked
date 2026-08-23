@@ -65,6 +65,10 @@ public class PiratePatConfig {
 	public static boolean defenseScaling() { return b("piratepat_defenseScaling"); }
 	public static float defenseFleetSizeMax() { return f("piratepat_defenseFleetSizeMax"); }
 
+	public static boolean respitePiercing() { return b("piratepat_respitePiercing"); }
+	public static float pierceMinContribution() { return i("piratepat_pierceMinContribution"); }
+	public static float pierceMinShare() { return f("piratepat_pierceMinShare"); }
+
 	public static boolean intelShowExact() { return b("piratepat_intelShowExact"); }
 	public static boolean debugLogging() { return b("piratepat_debugLogging"); }
 }

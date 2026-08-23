@@ -20,6 +20,10 @@ piratepat_blueprintBonus,Blueprint Bonus,Int,25000,"Flat war chest bonus when a 
 defenseHeader,Defense Header,Header,Base Defenses,"Vanilla base stations get restored as tier rises, but their defense fleets never grow. With scaling on, higher-tier bases field more and bigger patrols.",,
 piratepat_defenseScaling,Defense Scaling,Boolean,true,"Tier 3: +1 medium patrol. Tier 4: +1 medium +1 heavy. Tier 5: +2 medium +2 heavy.",,
 piratepat_defenseFleetSizeMax,Defense Fleet Size at Tier 5,Double,2.0,"Patrol fleet size multiplier at tier 5 (scales linearly from 1.0 at tier 1).",1.0,4.0
+pierceHeader,Pierce Header,Header,Fading Wariness,"Piracy Respite is vanilla's permanent reward for defeating the pirate crisis. But wariness fades when the war chest overflows with YOUR money: past these thresholds, chest-funded bases resume preying on your colonies (activity penalties and ambient fleets - never raids). Stop contributing and your share dilutes until the respite returns.",,
+piratepat_respitePiercing,Respite Piercing,Boolean,true,"Allow chest-funded bases to ignore Piracy Respite when the thresholds below are met.",,
+piratepat_pierceMinContribution,Pierce: Min Lifetime Contribution,Int,500000,"Your lifetime black market contribution must exceed this for wariness to fade.",50000,5000000
+piratepat_pierceMinShare,Pierce: Min Income Share,Double,0.25,"Your share of the underworld's lifetime income must exceed this for wariness to fade.",0.05,1.0
 intelHeader,Intel Header,Header,Intel,,,
 piratepat_intelShowExact,Show Exact Figures,Boolean,true,"Show exact war chest figures in the intel screen. Off = vaguer flavor descriptions.",,
 piratepat_debugLogging,Debug Logging,Boolean,false,"Verbose starsector.log output.",,
