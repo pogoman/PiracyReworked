@@ -1,0 +1,61 @@
+{
+	# Pirate Patronage - fallback values when LunaLib is not enabled
+
+	# Master switch. Off = the war chest economy freezes (bases keep running).
+	"piratepat_enabled": true,
+
+	# --- War chest economy ---
+	# Cost of the pirates' next base; multiplied by growth for each base they
+	# already operate, so base #5 is a real achievement of neglect.
+	"piratepat_baseCost": 150000,
+	"piratepat_baseCostGrowth": 1.35,
+
+	# Passive income per operating base per month. Tuned to ~90% of what an
+	# average raid costs over an average raid interval, so bases sustain their
+	# vanilla raid cadence but passive income alone never buys a new base.
+	"piratepat_incomePerBasePerMonth": 2000,
+
+	# Raids: launch cost per fleet point (tier-1 raid ~100 FP, tier-5 ~450 FP),
+	# and returns on success (a fraction of the cost recouped as spoils, plus
+	# a cut per size point of the raided system's hostile markets).
+	"piratepat_raidCostPerFP": 100,
+	"piratepat_raidReturnCostFraction": 0.5,
+	"piratepat_raidReturnPerMarketSize": 2000,
+
+	# Starting conditions: the chest is seeded to fund this many bases (minus
+	# any that already exist in the save) plus an operating reserve.
+	"piratepat_seedBases": 2,
+	"piratepat_seedReserve": 30000,
+
+	# Hard cap on simultaneously operating (raiding) pirate bases.
+	"piratepat_maxBases": 8,
+
+	# --- Black market contribution weights ---
+	# Sales are valued at actual (demand-adjusted) credits, then weighted by
+	# what the goods are worth to a pirate war effort. Purchases are plain
+	# revenue. Opposing buys/sells of the same goods at the same submarket are
+	# netted against each other, so wash-trading contributes nothing.
+	"piratepat_buyWeight": 1.0,
+	"piratepat_weaponWeight": 3.0,
+	"piratepat_shipWeight": 2.0,
+	"piratepat_commodityWeight": 1.0,
+	"piratepat_oreWeight": 0.5,
+	# Flat bonus when a blueprint is sold on the black market (on top of the
+	# vanilla behavior of pirates learning it).
+	"piratepat_blueprintBonus": 25000,
+
+	# --- Base defenses ---
+	# Scale base defense fleets with base tier (vanilla stations get restored
+	# with tier, but defenders stay 2 light + 1 medium patrol forever).
+	# Tier 3: +1 medium patrol. Tier 4: +1 medium +1 heavy. Tier 5: +2 medium
+	# +2 heavy. Patrol fleet size scales linearly up to the max multiplier at
+	# tier 5.
+	"piratepat_defenseScaling": true,
+	"piratepat_defenseFleetSizeMax": 2.0,
+
+	# --- Intel ---
+	"piratepat_intelShowExact": true,
+
+	# Debug
+	"piratepat_debugLogging": false,
+}

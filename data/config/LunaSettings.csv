@@ -1,0 +1,25 @@
+fieldID,fieldName,fieldType,defaultValue,fieldDescription,minValue,maxValue
+piratepat_enabled,Patronage Enabled,Boolean,true,"Master switch. Turning this off freezes the war chest economy (existing bases keep operating on vanilla rules).",,
+economyHeader,Economy Header,Header,The War Chest,"Your black market trades feed a pirate war chest. Bases earn passive income and pay to launch raids; successful raids return spoils. When the chest covers the next base's cost, the pirates expand.",,
+piratepat_baseCost,Base Cost,Int,150000,"War chest cost of the pirates' next base. Multiplied by the growth factor for each base already operating.",25000,1000000
+piratepat_baseCostGrowth,Base Cost Growth,Double,1.35,"Cost multiplier per already-operating base - makes each successive base harder to afford.",1.0,3.0
+piratepat_incomePerBasePerMonth,Income per Base per Month,Int,2000,"Passive war chest income per operating base per month. Tuned so bases sustain their vanilla raid cadence but passive income alone never buys a new base.",0,20000
+piratepat_raidCostPerFP,Raid Cost per Fleet Point,Int,100,"Launching a raid costs this many credits per fleet point (tier-1 raid ~100 FP, tier-5 ~450 FP). A base skips its raid if the chest can't cover it.",0,1000
+piratepat_raidReturnCostFraction,Raid Return: Cost Recouped,Double,0.5,"Fraction of a successful raid's launch cost recouped as spoils.",0.0,2.0
+piratepat_raidReturnPerMarketSize,Raid Return per Market Size,Int,2000,"Additional spoils per size point of hostile markets in the raided system. Repelled raids return nothing.",0,20000
+piratepat_seedBases,Starting Bases Funded,Int,2,"At game start (or when first enabled), the chest is seeded to fund this many bases, minus any that already exist.",0,5
+piratepat_seedReserve,Starting Reserve,Int,30000,"Operating reserve included in the starting war chest seed.",0,200000
+piratepat_maxBases,Max Operating Bases,Int,8,"Hard cap on simultaneously operating (raiding) pirate bases. Vanilla is 3.",1,15
+weightsHeader,Weights Header,Header,Contribution Weights,"Black market sales are valued at actual demand-adjusted credits, then weighted by usefulness to a pirate war effort. Purchases are plain revenue. Wash-trading (buy-and-sell-back) nets to zero.",,
+piratepat_buyWeight,Purchases,Double,1.0,"Weight on credits you spend buying from the black market.",0.0,5.0
+piratepat_weaponWeight,Weapons & Fighter LPCs,Double,3.0,"Weight on weapons and fighter wings sold - these directly arm raiders.",0.0,10.0
+piratepat_shipWeight,Ships,Double,2.0,"Weight on hulls sold on the black market.",0.0,10.0
+piratepat_commodityWeight,Commodities,Double,1.0,"Weight on general commodities (including drugs and organs - the pirates would have fenced those anyway).",0.0,5.0
+piratepat_oreWeight,Raw Ores,Double,0.5,"Weight on raw ores - of little use to a war effort.",0.0,5.0
+piratepat_blueprintBonus,Blueprint Bonus,Int,25000,"Flat war chest bonus when a blueprint is sold on the black market (the vanilla behavior of pirates learning it still applies).",0,200000
+defenseHeader,Defense Header,Header,Base Defenses,"Vanilla base stations get restored as tier rises, but their defense fleets never grow. With scaling on, higher-tier bases field more and bigger patrols.",,
+piratepat_defenseScaling,Defense Scaling,Boolean,true,"Tier 3: +1 medium patrol. Tier 4: +1 medium +1 heavy. Tier 5: +2 medium +2 heavy.",,
+piratepat_defenseFleetSizeMax,Defense Fleet Size at Tier 5,Double,2.0,"Patrol fleet size multiplier at tier 5 (scales linearly from 1.0 at tier 1).",1.0,4.0
+intelHeader,Intel Header,Header,Intel,,,
+piratepat_intelShowExact,Show Exact Figures,Boolean,true,"Show exact war chest figures in the intel screen. Off = vaguer flavor descriptions.",,
+piratepat_debugLogging,Debug Logging,Boolean,false,"Verbose starsector.log output.",,
