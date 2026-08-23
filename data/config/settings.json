@@ -66,6 +66,30 @@
 	"piratepat_pierceMinContribution": 500000,
 	"piratepat_pierceMinShare": 0.25,
 
+	# --- Personal bounties ---
+	# Each faction whose markets you smuggle through tracks the value you fed
+	# to the pirates there and posts a PERSONAL bounty on your head equal to
+	# it. No faction-level consequences - you're one ship captain, possibly
+	# operating transponder-off; they can't prove enough for a war, but the
+	# underworld talks, and money finds hunters. Independent bounty hunter
+	# fleets ambush you with strength scaled to the bounty; past the per-fleet
+	# cap, multiple fleets hunt concurrently. Bounties decay slowly if you
+	# stop adding to them.
+	"piratepat_bountyEnabled": true,
+	# a faction's bounty must exceed this before hunters take the contract
+	"piratepat_bountyActivationMin": 50000,
+	# hunter fleet strength: 1 fleet point per this many bounty credits
+	"piratepat_bountyCreditsPerFP": 1000,
+	"piratepat_bountyMaxFPPerFleet": 200,
+	# each additional concurrent fleet per this much bounty, up to the cap
+	"piratepat_bountyCreditsPerExtraFleet": 250000,
+	"piratepat_bountyMaxFleetsPerFaction": 3,
+	# spawn roll: every ~10 days per faction with an active bounty and a free
+	# hunter slot
+	"piratepat_bountySpawnProb": 0.33,
+	# fraction of each bounty that evaporates per month (0 = never forgotten)
+	"piratepat_bountyDecayPerMonth": 0.02,
+
 	# --- Intel ---
 	"piratepat_intelShowExact": true,
 

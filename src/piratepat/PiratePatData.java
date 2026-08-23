@@ -153,6 +153,57 @@ public class PiratePatData {
 		return getLifetimePlayerContribution() / total;
 	}
 
+	// --- personal bounties (factionId -> credits) ---
+
+	public static final String KEY_BOUNTIES = "piratepat_bounties";
+
+	@SuppressWarnings("unchecked")
+	public static Map<String, Float> bounties() {
+		Object val = Global.getSector().getPersistentData().get(KEY_BOUNTIES);
+		if (!(val instanceof Map)) {
+			val = new LinkedHashMap<String, Float>();
+			Global.getSector().getPersistentData().put(KEY_BOUNTIES, val);
+		}
+		return (Map<String, Float>) val;
+	}
+
+	public static float getBounty(String factionId) {
+		Float val = bounties().get(factionId);
+		return val == null ? 0f : val;
+	}
+
+	public static float getTotalBounty() {
+		float total = 0f;
+		for (Float val : bounties().values()) total += val;
+		return total;
+	}
+
+	/**
+	 * Accrue bounty with the faction owning the market where the contribution
+	 * happened. Returns true if this crossed the activation threshold.
+	 */
+	public static boolean addBounty(String factionId, float amount) {
+		if (amount <= 0) return false;
+		float before = getBounty(factionId);
+		float after = before + amount;
+		bounties().put(factionId, after);
+		float min = PiratePatConfig.bountyActivationMin();
+		return before < min && after >= min;
+	}
+
+	/** Monthly decay; forgotten below 1000 credits. */
+	public static void decayBounties() {
+		float decay = PiratePatConfig.bountyDecayPerMonth();
+		if (decay <= 0) return;
+		List<String> remove = new ArrayList<String>();
+		for (Map.Entry<String, Float> entry : bounties().entrySet()) {
+			float val = entry.getValue() * (1f - decay);
+			if (val < 1000f) remove.add(entry.getKey());
+			else entry.setValue(val);
+		}
+		for (String k : remove) bounties().remove(k);
+	}
+
 	// --- ledger (preformatted strings; newest first) ---
 
 	@SuppressWarnings("unchecked")

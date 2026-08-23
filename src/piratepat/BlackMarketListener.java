@@ -1,13 +1,19 @@
 package piratepat;
 
+import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CargoStackAPI;
 import com.fs.starfarer.api.campaign.PlayerMarketTransaction;
 import com.fs.starfarer.api.campaign.PlayerMarketTransaction.ShipSaleInfo;
+import com.fs.starfarer.api.campaign.comm.CommMessageAPI.MessageClickAction;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.campaign.impl.items.BlueprintProviderItem;
 import com.fs.starfarer.api.campaign.listeners.ColonyInteractionListener;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
+import com.fs.starfarer.api.impl.campaign.ids.Factions;
+import com.fs.starfarer.api.impl.campaign.intel.BaseIntelPlugin;
+import com.fs.starfarer.api.impl.campaign.intel.MessageIntel;
 import com.fs.starfarer.api.impl.campaign.shared.PlayerTradeDataForSubmarket;
+import com.fs.starfarer.api.util.Misc;
 
 /**
  * Feeds the war chest from black market transactions. Trades count regardless
@@ -77,6 +83,35 @@ public class BlackMarketListener implements ColonyInteractionListener {
 		if (total > 0) {
 			PiratePatData.addPlayerContribution(total, market.getName());
 			WarChestIntel.ensureAdded();
+			accrueBounty(market, total);
+		}
+	}
+
+	/**
+	 * The market's owning faction quietly adds the value you fed the pirates
+	 * to a personal bounty on your head. Pirates don't bounty their patron,
+	 * and you can't bounty yourself.
+	 */
+	private static void accrueBounty(MarketAPI market, float amount) {
+		if (!PiratePatConfig.bountyEnabled()) return;
+		if (market.getFaction() == null) return;
+		if (market.getFaction().isPlayerFaction()) return;
+		String factionId = market.getFactionId();
+		if (Factions.PIRATES.equals(factionId)) return;
+
+		boolean activated = PiratePatData.addBounty(factionId, amount);
+		PersonalBountyIntel.ensureAdded();
+		if (activated) {
+			PiratePatData.addLedger(Misc.ucFirst(market.getFaction().getDisplayName())
+					+ " quietly posts a bounty on your head", 0f);
+			MessageIntel msg = new MessageIntel();
+			msg.addLine("A price has been placed on your head", Misc.getNegativeHighlightColor());
+			msg.addLine(BaseIntelPlugin.BULLET + "%s bounty: %s", Misc.getTextColor(),
+					new String[] { Misc.ucFirst(market.getFaction().getDisplayName()),
+							Misc.getDGSCredits(PiratePatData.getBounty(factionId)) },
+					Misc.getHighlightColor());
+			msg.setIcon(market.getFaction().getCrest());
+			Global.getSector().getCampaignUI().addMessage(msg, MessageClickAction.INTEL_TAB);
 		}
 	}
 

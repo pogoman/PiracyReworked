@@ -24,6 +24,15 @@ pierceHeader,Pierce Header,Header,Fading Wariness,"Piracy Respite is vanilla's p
 piratepat_respitePiercing,Respite Piercing,Boolean,true,"Allow chest-funded bases to ignore Piracy Respite when the thresholds below are met.",,
 piratepat_pierceMinContribution,Pierce: Min Lifetime Contribution,Int,500000,"Your lifetime black market contribution must exceed this for wariness to fade.",50000,5000000
 piratepat_pierceMinShare,Pierce: Min Income Share,Double,0.25,"Your share of the underworld's lifetime income must exceed this for wariness to fade.",0.05,1.0
+bountyHeader,Bounty Header,Header,A Price On Your Head,"Factions whose markets you smuggle through post PERSONAL bounties equal to the value you fed the pirates there. No faction rep consequences - they can't prove enough for a war. Independent hunter fleets ambush you, scaled to the bounty; big bounties mean multiple concurrent fleets.",,
+piratepat_bountyEnabled,Bounties Enabled,Boolean,true,"Master switch for personal bounties and hunter fleets.",,
+piratepat_bountyActivationMin,Activation Threshold,Int,50000,"A faction's bounty must exceed this before hunters take the contract.",10000,500000
+piratepat_bountyCreditsPerFP,Credits per Fleet Point,Int,1000,"Hunter fleet strength: one fleet point per this many bounty credits.",250,10000
+piratepat_bountyMaxFPPerFleet,Max Fleet Points per Fleet,Int,200,"Cap on a single hunter fleet's strength.",50,500
+piratepat_bountyCreditsPerExtraFleet,Credits per Extra Fleet,Int,250000,"One additional concurrent hunter fleet per this much bounty, up to the cap below.",50000,2000000
+piratepat_bountyMaxFleetsPerFaction,Max Concurrent Fleets per Faction,Int,3,"Cap on simultaneous hunter fleets funded by one faction's bounty.",1,6
+piratepat_bountySpawnProb,Spawn Chance per Check,Double,0.33,"Chance per ~10-day check (per faction with an active bounty and a free hunter slot) that a hunter fleet is dispatched.",0.05,1.0
+piratepat_bountyDecayPerMonth,Bounty Decay per Month,Double,0.02,"Fraction of each bounty that evaporates monthly if you stop adding to it. 0 = never forgotten.",0.0,0.25
 intelHeader,Intel Header,Header,Intel,,,
 piratepat_intelShowExact,Show Exact Figures,Boolean,true,"Show exact war chest figures in the intel screen. Off = vaguer flavor descriptions.",,
 piratepat_debugLogging,Debug Logging,Boolean,false,"Verbose starsector.log output.",,

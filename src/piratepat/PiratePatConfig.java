@@ -65,6 +65,15 @@ public class PiratePatConfig {
 	public static boolean defenseScaling() { return b("piratepat_defenseScaling"); }
 	public static float defenseFleetSizeMax() { return f("piratepat_defenseFleetSizeMax"); }
 
+	public static boolean bountyEnabled() { return b("piratepat_bountyEnabled"); }
+	public static float bountyActivationMin() { return i("piratepat_bountyActivationMin"); }
+	public static float bountyCreditsPerFP() { return i("piratepat_bountyCreditsPerFP"); }
+	public static float bountyMaxFPPerFleet() { return i("piratepat_bountyMaxFPPerFleet"); }
+	public static float bountyCreditsPerExtraFleet() { return i("piratepat_bountyCreditsPerExtraFleet"); }
+	public static int bountyMaxFleetsPerFaction() { return i("piratepat_bountyMaxFleetsPerFaction"); }
+	public static float bountySpawnProb() { return f("piratepat_bountySpawnProb"); }
+	public static float bountyDecayPerMonth() { return f("piratepat_bountyDecayPerMonth"); }
+
 	public static boolean respitePiercing() { return b("piratepat_respitePiercing"); }
 	public static float pierceMinContribution() { return i("piratepat_pierceMinContribution"); }
 	public static float pierceMinShare() { return f("piratepat_pierceMinShare"); }

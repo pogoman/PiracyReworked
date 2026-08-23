@@ -49,6 +49,17 @@ dilutes as the pirate economy earns its own money, so laying off the black
 market eventually restores the respite. Adopted vanilla bases always honor
 respite; only bases the chest purchased are this bold.
 
+**A price on your head.** Each faction whose markets you smuggle through
+tracks the value you fed the pirates there and posts a *personal* bounty on
+your head equal to it - no faction rep consequences, because nothing can be
+proven well enough for open hostilities. You're one ship captain, possibly
+running dark; but the underworld talks. Once a faction's bounty crosses the
+activation threshold (50k default), independent bounty hunter fleets start
+ambushing you, with strength scaled to the bounty (1 FP per 1,000 credits,
+capped at 200 FP) - and past the cap, the bounty funds multiple concurrent
+hunter fleets, per faction. Fighting hunters carries no rep impact either
+way. Bounties fade slowly (2%/month default) if you stop adding to them.
+
 **Scaling defenses.** Vanilla base stations get restored as base tier rises,
 but their defenders never grow past 2 light + 1 medium patrol. Here, tier 3+
 bases field additional medium/heavy patrols and bigger fleets - a tier 5 base

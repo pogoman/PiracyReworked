@@ -50,6 +50,18 @@ public class PiratePatModPlugin extends BaseModPlugin {
 		mgr.adoptExistingBases();
 		PiratePatData.seedIfNeeded(mgr.getBases().size());
 
+		BountyHunterManager bountyMgr = null;
+		for (EveryFrameScript s : sector.getScripts()) {
+			if (s instanceof BountyHunterManager) {
+				bountyMgr = (BountyHunterManager) s;
+				break;
+			}
+		}
+		if (bountyMgr == null) {
+			sector.addScript(new BountyHunterManager());
+			log.info("Installed BountyHunterManager");
+		}
+
 		// transient: re-added every load, never serialized into the save
 		sector.getListenerManager().addListener(new BlackMarketListener(), true);
 
