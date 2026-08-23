@@ -26,6 +26,8 @@ piratepat_pierceMinContribution,Pierce: Min Lifetime Contribution,Int,500000,"Yo
 piratepat_pierceMinShare,Pierce: Min Income Share,Double,0.25,"Your share of the underworld's lifetime income must exceed this for wariness to fade.",0.05,1.0
 bountyHeader,Bounty Header,Header,A Price On Your Head,"Factions whose markets you smuggle through post PERSONAL bounties equal to the value you fed the pirates there. No faction rep consequences - they can't prove enough for a war. Independent hunter fleets ambush you, scaled to the bounty; big bounties mean multiple concurrent fleets.",,
 piratepat_bountyEnabled,Bounties Enabled,Boolean,true,"Master switch for personal bounties and hunter fleets.",,
+piratepat_bountySuspicionFloor,Suspicion Floor,Double,0.05,"No bounty accrues while the market's smuggling suspicion is below this (the suspicion level from the black market tooltip - transponder-off trading generates none).",0.0,1.0
+piratepat_bountySuspicionFull,Suspicion for Full Attribution,Double,0.3,"Bounty accrues at 100% of contributed value at this suspicion level, scaling linearly below it. 0.3 = ""high"" suspicion.",0.05,1.0
 piratepat_bountyActivationMin,Activation Threshold,Int,50000,"A faction's bounty must exceed this before hunters take the contract.",10000,500000
 piratepat_bountyCreditsPerFP,Credits per Fleet Point,Int,1000,"Hunter fleet strength: one fleet point per this many bounty credits.",250,10000
 piratepat_bountyMaxFPPerFleet,Max Fleet Points per Fleet,Int,200,"Cap on a single hunter fleet's strength.",50,500

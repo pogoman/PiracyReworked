@@ -66,6 +66,8 @@ public class PiratePatConfig {
 	public static float defenseFleetSizeMax() { return f("piratepat_defenseFleetSizeMax"); }
 
 	public static boolean bountyEnabled() { return b("piratepat_bountyEnabled"); }
+	public static float bountySuspicionFloor() { return f("piratepat_bountySuspicionFloor"); }
+	public static float bountySuspicionFull() { return f("piratepat_bountySuspicionFull"); }
 	public static float bountyActivationMin() { return i("piratepat_bountyActivationMin"); }
 	public static float bountyCreditsPerFP() { return i("piratepat_bountyCreditsPerFP"); }
 	public static float bountyMaxFPPerFleet() { return i("piratepat_bountyMaxFPPerFleet"); }

@@ -76,6 +76,13 @@
 	# cap, multiple fleets hunt concurrently. Bounties decay slowly if you
 	# stop adding to them.
 	"piratepat_bountyEnabled": true,
+	# Bounty only accrues when the market's smuggling suspicion implicates
+	# you (the same suspicion level shown in the black market tooltip -
+	# transponder-off trading generates none). Below the floor nothing
+	# accrues; the attributed fraction scales linearly to 100% at the "full"
+	# level (0.3 = "high" suspicion).
+	"piratepat_bountySuspicionFloor": 0.05,
+	"piratepat_bountySuspicionFull": 0.3,
 	# a faction's bounty must exceed this before hunters take the contract
 	"piratepat_bountyActivationMin": 50000,
 	# hunter fleet strength: 1 fleet point per this many bounty credits

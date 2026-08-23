@@ -52,8 +52,12 @@ respite; only bases the chest purchased are this bold.
 **A price on your head.** Each faction whose markets you smuggle through
 tracks the value you fed the pirates there and posts a *personal* bounty on
 your head equal to it - no faction rep consequences, because nothing can be
-proven well enough for open hostilities. You're one ship captain, possibly
-running dark; but the underworld talks. Once a faction's bounty crosses the
+proven well enough for open hostilities. But only to the extent their port
+authority actually *suspects* you: bounty accrual scales with the market's
+vanilla smuggling suspicion level (the black market tooltip's readout), from
+nothing below "minimal" up to full value at "high". Transponder-off trading
+generates no suspicion - a careful smuggler funds the pirates without ever
+making a wanted list; a brazen one gets hunted. Once a faction's bounty crosses the
 activation threshold (50k default), independent bounty hunter fleets start
 ambushing you, with strength scaled to the bounty (1 FP per 1,000 credits,
 capped at 200 FP) - and past the cap, the bounty funds multiple concurrent

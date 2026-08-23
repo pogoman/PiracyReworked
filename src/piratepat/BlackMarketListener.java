@@ -8,6 +8,7 @@ import com.fs.starfarer.api.campaign.comm.CommMessageAPI.MessageClickAction;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.campaign.impl.items.BlueprintProviderItem;
 import com.fs.starfarer.api.campaign.listeners.ColonyInteractionListener;
+import com.fs.starfarer.api.impl.campaign.CoreCampaignPluginImpl;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import com.fs.starfarer.api.impl.campaign.ids.Factions;
 import com.fs.starfarer.api.impl.campaign.intel.BaseIntelPlugin;
@@ -89,8 +90,13 @@ public class BlackMarketListener implements ColonyInteractionListener {
 
 	/**
 	 * The market's owning faction quietly adds the value you fed the pirates
-	 * to a personal bounty on your head. Pirates don't bounty their patron,
-	 * and you can't bounty yourself.
+	 * to a personal bounty on your head - but only to the extent their port
+	 * authority actually suspects you. Uses vanilla's live smuggling
+	 * suspicion (the black market tooltip's level): transponder-off trading
+	 * generates none, so careful smugglers stay off the wanted lists. Below
+	 * the floor nothing accrues; attribution scales to 100% at the "full"
+	 * suspicion level. Pirates don't bounty their patron, and you can't
+	 * bounty yourself.
 	 */
 	private static void accrueBounty(MarketAPI market, float amount) {
 		if (!PiratePatConfig.bountyEnabled()) return;
@@ -98,6 +104,12 @@ public class BlackMarketListener implements ColonyInteractionListener {
 		if (market.getFaction().isPlayerFaction()) return;
 		String factionId = market.getFactionId();
 		if (Factions.PIRATES.equals(factionId)) return;
+
+		float suspicion = CoreCampaignPluginImpl.computeSmugglingSuspicionLevel(market);
+		if (suspicion < PiratePatConfig.bountySuspicionFloor()) return;
+		float full = Math.max(0.01f, PiratePatConfig.bountySuspicionFull());
+		amount *= Math.min(1f, suspicion / full);
+		if (amount <= 0) return;
 
 		boolean activated = PiratePatData.addBounty(factionId, amount);
 		PersonalBountyIntel.ensureAdded();
