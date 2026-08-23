@@ -1,6 +1,7 @@
 package piratepat;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -14,7 +15,9 @@ import com.fs.starfarer.api.impl.campaign.ids.Stats;
 import com.fs.starfarer.api.impl.campaign.intel.bases.PirateBaseIntel;
 import com.fs.starfarer.api.impl.campaign.intel.bases.PirateBaseIntel.PirateBaseTier;
 import com.fs.starfarer.api.impl.campaign.intel.bases.PirateBaseManager;
+import com.fs.starfarer.api.impl.campaign.intel.raid.RaidIntel;
 import com.fs.starfarer.api.util.IntervalUtil;
+import com.fs.starfarer.api.util.Misc;
 import com.fs.starfarer.api.util.WeightedRandomPicker;
 
 /**
@@ -82,7 +85,74 @@ public class PatronageBaseManager extends PirateBaseManager {
 		spawnInterval.advance(days);
 		if (spawnInterval.intervalElapsed()) {
 			if (PiratePatConfig.enabled()) {
+				trackAdoptedBaseRaids();
 				checkBasePurchase();
+			}
+		}
+	}
+
+	protected List<RaidIntel> trackedRaids = new ArrayList<RaidIntel>();
+
+	/**
+	 * PatronageBaseIntel handles its own raid ledger via overrides, but
+	 * adopted vanilla bases launch raids through unmodified vanilla code.
+	 * Catch those raids here: debit what the chest can cover at launch
+	 * (vanilla bases can't be stopped by poverty - they're grandfathered),
+	 * credit spoils on success, count defeats.
+	 */
+	protected void trackAdoptedBaseRaids() {
+		List<MarketAPI> adoptedMarkets = new ArrayList<MarketAPI>();
+		for (PirateBaseIntel base : getBases()) {
+			if (base instanceof PatronageBaseIntel) continue;
+			if (base.getMarket() != null) adoptedMarkets.add(base.getMarket());
+		}
+
+		if (!adoptedMarkets.isEmpty()) {
+			for (IntelInfoPlugin intel : Global.getSector().getIntelManager().getIntel(RaidIntel.class)) {
+				RaidIntel raid = (RaidIntel) intel;
+				if (trackedRaids.contains(raid)) continue;
+				if (raid.isEnding() || raid.isEnded()) continue;
+				if (raid.getAssembleStage() == null) continue;
+
+				boolean ours = false;
+				for (MarketAPI source : raid.getAssembleStage().getSources()) {
+					if (adoptedMarkets.contains(source)) {
+						ours = true;
+						break;
+					}
+				}
+				if (!ours) continue;
+
+				float cost = raid.getAssembleStage().getOrigSpawnFP() * PiratePatConfig.raidCostPerFP();
+				PiratePatData.spendUpTo(cost, "Raiders draw on the war chest");
+				PiratePatData.incrRaidsLaunched();
+				trackedRaids.add(raid);
+			}
+		}
+
+		Iterator<RaidIntel> iter = trackedRaids.iterator();
+		while (iter.hasNext()) {
+			RaidIntel raid = iter.next();
+			if (!raid.isEnding() && !raid.isEnded()) continue;
+			iter.remove();
+
+			if (raid.isSucceeded()) {
+				float fp = raid.getAssembleStage() != null
+						? raid.getAssembleStage().getOrigSpawnFP() : 0f;
+				float spoils = fp * PiratePatConfig.raidCostPerFP()
+						* PiratePatConfig.raidReturnCostFraction();
+				String targetName = "hostile worlds";
+				if (raid.getSystem() != null) {
+					targetName = raid.getSystem().getNameWithNoType();
+					for (MarketAPI curr : Misc.getMarketsInLocation(raid.getSystem())) {
+						if (curr.getFaction().isHostileTo(raid.getFaction())) {
+							spoils += curr.getSize() * PiratePatConfig.raidReturnPerMarketSize();
+						}
+					}
+				}
+				PiratePatData.addRaidReturn(spoils, targetName);
+			} else if (raid.isFailed()) {
+				PiratePatData.incrRaidsDefeated();
 			}
 		}
 	}

@@ -119,6 +119,21 @@ public class PiratePatData {
 		addLedger("Spoils from raiding " + targetName, amount);
 	}
 
+	/**
+	 * Debits as much of the amount as the chest can cover; returns what was
+	 * actually spent. Used for raids the chest cannot prevent (adopted
+	 * vanilla bases launch on vanilla rules regardless of funds).
+	 */
+	public static float spendUpTo(float amount, String ledgerText) {
+		if (amount <= 0) return 0f;
+		float spent = Math.min(getChest(), amount);
+		if (spent <= 0) return 0f;
+		setChest(getChest() - spent);
+		putF(KEY_LT_COSTS, getF(KEY_LT_COSTS) + spent);
+		if (ledgerText != null) addLedger(ledgerText, -spent);
+		return spent;
+	}
+
 	/** Debits the chest if it can cover the amount; returns whether it did. */
 	public static boolean trySpend(float amount, String ledgerText) {
 		if (amount <= 0) return true;
