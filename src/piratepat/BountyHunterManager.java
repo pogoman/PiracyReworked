@@ -42,6 +42,15 @@ public class BountyHunterManager implements EveryFrameScript {
 
 	protected Map<String, List<CampaignFleetAPI>> hunters = new LinkedHashMap<String, List<CampaignFleetAPI>>();
 
+	/** XStream skips field initializers on load - guard every field. */
+	protected Object readResolve() {
+		if (checkInterval == null) checkInterval = new IntervalUtil(7.5f, 12.5f);
+		if (monthly == null) monthly = new IntervalUtil(25f, 35f);
+		if (random == null) random = new Random();
+		if (hunters == null) hunters = new LinkedHashMap<String, List<CampaignFleetAPI>>();
+		return this;
+	}
+
 	public void advance(float amount) {
 		if (!PiratePatConfig.enabled() || !PiratePatConfig.bountyEnabled()) return;
 		float days = Global.getSector().getClock().convertToDays(amount);

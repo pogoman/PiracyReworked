@@ -44,6 +44,21 @@ public class PatronageBaseManager extends PirateBaseManager {
 	protected IntervalUtil econInterval = new IntervalUtil(25f, 35f);
 	protected IntervalUtil spawnInterval = new IntervalUtil(CHECK_DAYS * 0.75f, CHECK_DAYS * 1.25f);
 
+	/**
+	 * XStream skips constructors and field initializers when loading a save,
+	 * so any field added after a save was created comes back null. Guard
+	 * everything; also replicates the parent classes' readResolve guards,
+	 * since defining this here shadows theirs.
+	 */
+	protected Object readResolve() {
+		if (randomBase == null) randomBase = new java.util.Random();
+		if (random == null) random = new java.util.Random();
+		if (econInterval == null) econInterval = new IntervalUtil(25f, 35f);
+		if (spawnInterval == null) spawnInterval = new IntervalUtil(CHECK_DAYS * 0.75f, CHECK_DAYS * 1.25f);
+		if (trackedRaids == null) trackedRaids = new ArrayList<RaidIntel>();
+		return this;
+	}
+
 	public static PatronageBaseManager get() {
 		PirateBaseManager instance = PirateBaseManager.getInstance();
 		if (instance instanceof PatronageBaseManager) return (PatronageBaseManager) instance;
