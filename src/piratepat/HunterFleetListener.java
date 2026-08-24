@@ -5,7 +5,12 @@ import com.fs.starfarer.api.campaign.BattleAPI;
 import com.fs.starfarer.api.campaign.CampaignEventListener.FleetDespawnReason;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.FactionAPI;
+import com.fs.starfarer.api.campaign.RepLevel;
 import com.fs.starfarer.api.campaign.listeners.FleetEventListener;
+import com.fs.starfarer.api.impl.campaign.CoreReputationPlugin.CustomRepImpact;
+import com.fs.starfarer.api.impl.campaign.CoreReputationPlugin.RepActionEnvelope;
+import com.fs.starfarer.api.impl.campaign.CoreReputationPlugin.RepActions;
+import com.fs.starfarer.api.impl.campaign.ids.Factions;
 import com.fs.starfarer.api.impl.campaign.intel.BaseIntelPlugin;
 import com.fs.starfarer.api.impl.campaign.intel.MessageIntel;
 import com.fs.starfarer.api.campaign.comm.CommMessageAPI.MessageClickAction;
@@ -54,6 +59,18 @@ public class HunterFleetListener implements FleetEventListener {
 				Misc.getHighlightColor());
 		if (faction != null) msg.setIcon(faction.getCrest());
 		Global.getSector().getCampaignUI().addMessage(msg, MessageClickAction.INTEL_TAB);
+
+		// the underworld appreciates its patron handling the opposition
+		int repPoints = PiratePatConfig.pirateRepPerHunterKill();
+		if (repPoints > 0) {
+			CustomRepImpact impact = new CustomRepImpact();
+			impact.delta = repPoints * 0.01f;
+			impact.limit = RepLevel.FRIENDLY;
+			Global.getSector().adjustPlayerReputation(
+					new RepActionEnvelope(RepActions.CUSTOM, impact, null, null, true, true,
+							"Destroyed bounty hunters pursuing a patron of the underworld"),
+					Factions.PIRATES);
+		}
 	}
 
 	public void reportBattleOccurred(CampaignFleetAPI fleet, CampaignFleetAPI primaryWinner,

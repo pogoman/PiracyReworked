@@ -101,6 +101,10 @@
 	# a fraction of the standing bounty.
 	"piratepat_bountyPerKillFlat": 15000,
 	"piratepat_bountyPerKillFraction": 0.1,
+	# reputation points gained with the pirates each time you destroy a
+	# hunter fleet (they appreciate their patron dealing with the opposition);
+	# capped so hunter-farming alone can't take you past friendly
+	"piratepat_pirateRepPerHunterKill": 2,
 	# paying off a bounty at any of that faction's markets costs this
 	# multiple of the bounty (a premium over the raw figure - you're buying
 	# silence, not settling a debt)
