@@ -63,6 +63,10 @@ ambushing you, with strength scaled to the bounty (1 FP per 1,000 credits,
 capped at 200 FP) - and past the cap, the bounty funds multiple concurrent
 hunter fleets, per faction. Fighting hunters carries no rep impact either
 way. Bounties fade slowly (2%/month default) if you stop adding to them.
+Destroying a hunter fleet *raises* the sponsor's bounty (+15k plus 10% of the
+standing figure) - notoriety compounds. Or buy your way off a faction's list
+from the intel screen: clearing a bounty costs a 25% premium over the figure,
+and nothing stops you landing right back on the list.
 
 **Scaling defenses.** Vanilla base stations get restored as base tier rises,
 but their defenders never grow past 2 light + 1 medium patrol. Here, tier 3+

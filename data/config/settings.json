@@ -96,6 +96,15 @@
 	"piratepat_bountySpawnProb": 0.33,
 	# fraction of each bounty that evaporates per month (0 = never forgotten)
 	"piratepat_bountyDecayPerMonth": 0.02,
+	# defeating a hunter fleet raises that faction's bounty - killing their
+	# hunters makes you more notorious, not less. Added as a flat amount plus
+	# a fraction of the standing bounty.
+	"piratepat_bountyPerKillFlat": 15000,
+	"piratepat_bountyPerKillFraction": 0.1,
+	# paying off a bounty at any of that faction's markets costs this
+	# multiple of the bounty (a premium over the raw figure - you're buying
+	# silence, not settling a debt)
+	"piratepat_bountyPayoffMult": 1.25,
 
 	# --- Intel ---
 	"piratepat_intelShowExact": true,

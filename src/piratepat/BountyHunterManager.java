@@ -134,6 +134,7 @@ public class BountyHunterManager implements EveryFrameScript {
 		fleet.setName("Bounty Hunters");
 		fleet.getMemoryWithoutUpdate().set(HUNTER_FLAG, true);
 		fleet.getMemoryWithoutUpdate().set(HUNTER_FLAG + "_faction", factionId);
+		fleet.addEventListener(new HunterFleetListener(factionId));
 		Misc.setFlagWithReason(fleet.getMemoryWithoutUpdate(),
 				MemFlags.MEMORY_KEY_PURSUE_PLAYER, "piratepat_bounty", true, HUNT_DAYS);
 

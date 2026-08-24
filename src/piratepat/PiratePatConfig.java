@@ -75,6 +75,9 @@ public class PiratePatConfig {
 	public static int bountyMaxFleetsPerFaction() { return i("piratepat_bountyMaxFleetsPerFaction"); }
 	public static float bountySpawnProb() { return f("piratepat_bountySpawnProb"); }
 	public static float bountyDecayPerMonth() { return f("piratepat_bountyDecayPerMonth"); }
+	public static float bountyPerKillFlat() { return i("piratepat_bountyPerKillFlat"); }
+	public static float bountyPerKillFraction() { return f("piratepat_bountyPerKillFraction"); }
+	public static float bountyPayoffMult() { return f("piratepat_bountyPayoffMult"); }
 
 	public static boolean respitePiercing() { return b("piratepat_respitePiercing"); }
 	public static float pierceMinContribution() { return i("piratepat_pierceMinContribution"); }

@@ -206,6 +206,17 @@ public class PiratePatData {
 		return before < min && after >= min;
 	}
 
+	/** Raise a faction's bounty (e.g. after the player kills its hunters). */
+	public static void raiseBounty(String factionId, float amount) {
+		if (amount <= 0) return;
+		bounties().put(factionId, getBounty(factionId) + amount);
+	}
+
+	/** Clear a faction's bounty entirely (paid off). */
+	public static void clearBounty(String factionId) {
+		bounties().remove(factionId);
+	}
+
 	/** Monthly decay; forgotten below 1000 credits. */
 	public static void decayBounties() {
 		float decay = PiratePatConfig.bountyDecayPerMonth();

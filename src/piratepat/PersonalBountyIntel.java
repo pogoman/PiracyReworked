@@ -11,9 +11,11 @@ import java.awt.Color;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.FactionAPI;
+import com.fs.starfarer.api.ui.IntelUIAPI;
 import com.fs.starfarer.api.impl.campaign.ids.Factions;
 import com.fs.starfarer.api.impl.campaign.ids.Tags;
 import com.fs.starfarer.api.impl.campaign.intel.BaseIntelPlugin;
+import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.SectorMapAPI;
 import com.fs.starfarer.api.ui.TooltipMakerAPI;
 import com.fs.starfarer.api.util.Misc;
@@ -104,6 +106,22 @@ public class PersonalBountyIntel extends BaseIntelPlugin {
 				info.addPara(BULLET + name + ": %s" + status, 3f, c, h,
 						Misc.getDGSCredits(entry.getValue()));
 			}
+
+			// pay-off buttons, one per faction
+			info.addPara("You can buy your way off a faction's list - discreet payments to the "
+					+ "right people. It costs a premium over the bounty itself, and doesn't stop "
+					+ "you landing back on the list if you keep smuggling.", opad);
+			for (Map.Entry<String, Float> entry : sorted) {
+				FactionAPI faction = Global.getSector().getFaction(entry.getKey());
+				String name = faction != null ? Misc.ucFirst(faction.getDisplayName()) : entry.getKey();
+				float cost = entry.getValue() * PiratePatConfig.bountyPayoffMult();
+				boolean canAfford = Global.getSector().getPlayerFleet().getCargo().getCredits().get() >= cost;
+				Color bg = faction != null ? faction.getDarkUIColor() : Misc.getDarkPlayerColor();
+				Color tcol = faction != null ? faction.getBaseUIColor() : Misc.getBasePlayerColor();
+				ButtonAPI button = addGenericButton(info, width - 10f, tcol, bg,
+						"Pay off " + name + " - " + Misc.getDGSCredits(cost), entry.getKey());
+				button.setEnabled(canAfford);
+			}
 		}
 
 		float total = PiratePatData.getTotalBounty();
@@ -123,5 +141,44 @@ public class PersonalBountyIntel extends BaseIntelPlugin {
 					+ "Memories are long, but not infinite.", opad, h,
 					(int) Math.round(decay * 100f) + "%");
 		}
+		info.addPara("Destroying hunter fleets raises the sponsor's bounty - notoriety "
+				+ "compounds.", opad, neg, "raises");
+	}
+
+	@Override
+	public boolean doesButtonHaveConfirmDialog(Object buttonId) {
+		return true;
+	}
+
+	@Override
+	public void createConfirmationPrompt(Object buttonId, TooltipMakerAPI prompt) {
+		if (!(buttonId instanceof String)) return;
+		String factionId = (String) buttonId;
+		FactionAPI faction = Global.getSector().getFaction(factionId);
+		String name = faction != null ? Misc.ucFirst(faction.getDisplayName()) : factionId;
+		float cost = PiratePatData.getBounty(factionId) * PiratePatConfig.bountyPayoffMult();
+		prompt.addPara("Discreet payments through intermediaries will clear the "
+				+ name + " bounty on your head, at a cost of %s.", 0f,
+				Misc.getHighlightColor(), Misc.getDGSCredits(cost));
+		prompt.addPara("Hunters already in space won't get the memo.", 10f);
+	}
+
+	@Override
+	public void buttonPressConfirmed(Object buttonId, IntelUIAPI ui) {
+		if (!(buttonId instanceof String)) return;
+		String factionId = (String) buttonId;
+		float bounty = PiratePatData.getBounty(factionId);
+		if (bounty <= 0) return;
+		float cost = bounty * PiratePatConfig.bountyPayoffMult();
+		if (Global.getSector().getPlayerFleet().getCargo().getCredits().get() < cost) return;
+
+		Global.getSector().getPlayerFleet().getCargo().getCredits().subtract(cost);
+		PiratePatData.clearBounty(factionId);
+
+		FactionAPI faction = Global.getSector().getFaction(factionId);
+		String name = faction != null ? Misc.ucFirst(faction.getDisplayName()) : factionId;
+		PiratePatData.addLedger("Paid off the " + name + " bounty on your head", -cost);
+
+		if (ui != null) ui.updateUIForItem(this);
 	}
 }
