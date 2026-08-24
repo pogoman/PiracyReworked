@@ -168,16 +168,18 @@ public class PiratePatData {
 	}
 
 	/**
-	 * Destroying ordinary pirate fleets chips away at the contribution
-	 * ledger too - quiet accumulation, no per-kill ledger entries.
+	 * Destroying pirate ships in battle chips away at the contribution
+	 * ledger - one ledger entry per battle.
 	 */
-	public static void offsetFromPirateKills(float amount) {
+	public static void offsetFromPirateKills(float amount, int fpDestroyed) {
 		if (amount <= 0) return;
 		float contributed = getF(KEY_LT_PLAYER);
 		float applied = Math.min(amount, contributed);
 		if (applied <= 0) return;
 		putF(KEY_LT_PLAYER, contributed - applied);
 		putF(KEY_LT_KILL_OFFSET, getF(KEY_LT_KILL_OFFSET) + applied);
+		addLedger("Destroyed pirate ships in battle (" + fpDestroyed
+				+ " fleet points) - your ledger lightens", -applied);
 	}
 
 	public static float getLifetimeKillOffset() { return getF(KEY_LT_KILL_OFFSET); }

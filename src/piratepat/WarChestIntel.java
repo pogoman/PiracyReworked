@@ -146,19 +146,30 @@ public class WarChestIntel extends BaseIntelPlugin {
 		// lifetime bookkeeping
 		float player = PiratePatData.getLifetimePlayerContribution();
 		int sharePct = Math.round(PiratePatData.getPlayerShare() * 100f);
-		if (player > 0) {
-			info.addPara("You have contributed %s to the pirate war economy - %s of its "
-					+ "lifetime income.", opad, neg,
-					Misc.getDGSCredits(player), sharePct + "%");
-		} else {
-			info.addPara("You have contributed nothing to the pirate war economy. So far.", opad);
-		}
+		// "player" (net) has already had kill offsets subtracted; show the
+		// full moral arithmetic: gross in red, offsets in green, net colored
+		// by which way the scales tip
 		float killOffset = PiratePatData.getLifetimeKillOffset();
-		if (killOffset > 0) {
-			info.addPara("Hunting pirates has offset %s of your contributions"
-					+ (PiratePatData.getBasesDestroyed() > 0
-							? " (" + PiratePatData.getBasesDestroyed() + " bases destroyed)" : "")
-					+ ".", 3f, pos, Misc.getDGSCredits(killOffset));
+		float gross = player + killOffset;
+		if (gross <= 0) {
+			info.addPara("You have contributed nothing to the pirate war economy. So far.", opad);
+		} else {
+			info.addPara("You have funneled %s into the pirate war economy.", opad, neg,
+					Misc.getDGSCredits(gross));
+			if (killOffset > 0) {
+				info.addPara("Hunting pirates has offset %s of that"
+						+ (PiratePatData.getBasesDestroyed() > 0
+								? " (" + PiratePatData.getBasesDestroyed() + " bases destroyed)" : "")
+						+ ".", 3f, pos, Misc.getDGSCredits(killOffset));
+			}
+			Color netColor = player > 0 ? neg : pos;
+			if (player > 0) {
+				info.addPara("Net contribution: %s - %s of the underworld's lifetime income.", 3f,
+						netColor, Misc.getDGSCredits(player), sharePct + "%");
+			} else {
+				info.addPara("Net contribution: %s - your ledger with the sector is settled.", 3f,
+						netColor, Misc.getDGSCredits(0f));
+			}
 		}
 
 		if (PatronageActivityIntel.isPiercingActive()) {
