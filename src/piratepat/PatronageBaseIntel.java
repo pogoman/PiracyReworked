@@ -83,20 +83,7 @@ public class PatronageBaseIntel extends PirateBaseIntel {
 			if (raid != null && raid.getAssembleStage() != null) {
 				fp = raid.getAssembleStage().getOrigSpawnFP();
 			}
-			float spoils = fp * PiratePatConfig.raidCostPerFP()
-					* PiratePatConfig.raidReturnCostFraction();
-
-			StarSystemAPI target = lastRaidTarget;
-			String targetName = "hostile worlds";
-			if (target != null) {
-				targetName = target.getNameWithNoType();
-				for (MarketAPI curr : Misc.getMarketsInLocation(target)) {
-					if (curr.getFaction().isHostileTo(getFactionForUIColors())) {
-						spoils += curr.getSize() * PiratePatConfig.raidReturnPerMarketSize();
-					}
-				}
-			}
-			PiratePatData.addRaidReturn(spoils, targetName);
+			PatronageBaseManager.settleSuccessfulRaid(lastRaidTarget, getFactionForUIColors(), fp);
 		} else {
 			PiratePatData.incrRaidsDefeated();
 		}

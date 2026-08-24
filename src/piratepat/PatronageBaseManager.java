@@ -8,9 +8,14 @@ import org.apache.log4j.Logger;
 
 import com.fs.starfarer.api.EveryFrameScript;
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.FactionAPI;
 import com.fs.starfarer.api.campaign.StarSystemAPI;
+import com.fs.starfarer.api.campaign.comm.CommMessageAPI.MessageClickAction;
 import com.fs.starfarer.api.campaign.comm.IntelInfoPlugin;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
+import com.fs.starfarer.api.impl.campaign.econ.RecentUnrest;
+import com.fs.starfarer.api.impl.campaign.intel.BaseIntelPlugin;
+import com.fs.starfarer.api.impl.campaign.intel.MessageIntel;
 import com.fs.starfarer.api.impl.campaign.ids.Stats;
 import com.fs.starfarer.api.impl.campaign.intel.bases.PirateBaseIntel;
 import com.fs.starfarer.api.impl.campaign.intel.bases.PirateBaseIntel.PirateBaseTier;
@@ -109,6 +114,48 @@ public class PatronageBaseManager extends PirateBaseManager {
 	protected List<RaidIntel> trackedRaids = new ArrayList<RaidIntel>();
 
 	/**
+	 * Credits spoils for a successful raid and sends a notification that
+	 * spells out the consequences: what flowed into the war chest, and what
+	 * the raid did to each raided colony (the recent-unrest stability hit,
+	 * read directly off the markets moments after the raid resolves).
+	 */
+	public static void settleSuccessfulRaid(StarSystemAPI target, FactionAPI pirateFaction, float fp) {
+		float spoils = fp * PiratePatConfig.raidCostPerFP() * PiratePatConfig.raidReturnCostFraction();
+		String targetName = "hostile worlds";
+		List<MarketAPI> raided = new ArrayList<MarketAPI>();
+		if (target != null) {
+			targetName = target.getNameWithNoType();
+			for (MarketAPI curr : Misc.getMarketsInLocation(target)) {
+				if (pirateFaction != null && curr.getFaction().isHostileTo(pirateFaction)) {
+					raided.add(curr);
+					spoils += curr.getSize() * PiratePatConfig.raidReturnPerMarketSize();
+				}
+			}
+		}
+		PiratePatData.addRaidReturn(spoils, targetName);
+
+		MessageIntel msg = new MessageIntel();
+		msg.addLine("Pirate raid profits flow to the war chest", Misc.getNegativeHighlightColor());
+		msg.addLine(BaseIntelPlugin.BULLET + "Spoils from " + targetName + ": %s",
+				Misc.getTextColor(),
+				new String[] { "+" + Misc.getDGSCredits(spoils) },
+				Misc.getHighlightColor());
+		for (MarketAPI market : raided) {
+			int penalty = RecentUnrest.getPenalty(market);
+			if (penalty > 0) {
+				msg.addLine(BaseIntelPlugin.BULLET + market.getName() + ": stability %s",
+						Misc.getTextColor(),
+						new String[] { "-" + penalty },
+						Misc.getNegativeHighlightColor());
+			} else {
+				msg.addLine(BaseIntelPlugin.BULLET + market.getName() + " raided", Misc.getTextColor());
+			}
+		}
+		if (pirateFaction != null) msg.setIcon(pirateFaction.getCrest());
+		Global.getSector().getCampaignUI().addMessage(msg, MessageClickAction.INTEL_TAB);
+	}
+
+	/**
 	 * PatronageBaseIntel handles its own raid ledger via overrides, but
 	 * adopted vanilla bases launch raids through unmodified vanilla code.
 	 * Catch those raids here: debit what the chest can cover at launch
@@ -154,18 +201,7 @@ public class PatronageBaseManager extends PirateBaseManager {
 			if (raid.isSucceeded()) {
 				float fp = raid.getAssembleStage() != null
 						? raid.getAssembleStage().getOrigSpawnFP() : 0f;
-				float spoils = fp * PiratePatConfig.raidCostPerFP()
-						* PiratePatConfig.raidReturnCostFraction();
-				String targetName = "hostile worlds";
-				if (raid.getSystem() != null) {
-					targetName = raid.getSystem().getNameWithNoType();
-					for (MarketAPI curr : Misc.getMarketsInLocation(raid.getSystem())) {
-						if (curr.getFaction().isHostileTo(raid.getFaction())) {
-							spoils += curr.getSize() * PiratePatConfig.raidReturnPerMarketSize();
-						}
-					}
-				}
-				PiratePatData.addRaidReturn(spoils, targetName);
+				settleSuccessfulRaid(raid.getSystem(), raid.getFaction(), fp);
 			} else if (raid.isFailed()) {
 				PiratePatData.incrRaidsDefeated();
 			}
