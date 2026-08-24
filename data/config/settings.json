@@ -30,6 +30,16 @@
 	# Hard cap on simultaneously operating (raiding) pirate bases.
 	"piratepat_maxBases": 8,
 
+	# Destroying a pirate base offsets your lifetime contribution figure by
+	# this much (never below zero) - the infrastructure your money built is
+	# ash, and the sector's ledger against you lightens. Also pulls your
+	# income share down, helping restore a pierced Piracy Respite.
+	"piratepat_baseKillContributionOffset": 150000,
+	# destroying ordinary pirate fleets also offsets your contribution, at
+	# this many credits per fleet point destroyed (fleet wiped out in a
+	# battle you fought in)
+	"piratepat_offsetPerPirateFPDestroyed": 300,
+
 	# --- Black market contribution weights ---
 	# Sales are valued at actual (demand-adjusted) credits, then weighted by
 	# what the goods are worth to a pirate war effort. Purchases are plain

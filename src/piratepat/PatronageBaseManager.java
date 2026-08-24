@@ -90,6 +90,14 @@ public class PatronageBaseManager extends PirateBaseManager {
 			event.advance(amount);
 			if (event.isDone()) remove.add(event);
 		}
+		for (EveryFrameScript event : remove) {
+			if (event instanceof PirateBaseIntel && PiratePatConfig.enabled()) {
+				PirateBaseIntel base = (PirateBaseIntel) event;
+				String systemName = base.getSystem() != null
+						? base.getSystem().getNameWithLowercaseTypeShort() : "unknown system";
+				PiratePatData.reportBaseDestroyed(systemName);
+			}
+		}
 		active.removeAll(remove);
 
 		econInterval.advance(days);

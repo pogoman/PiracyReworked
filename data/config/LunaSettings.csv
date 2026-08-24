@@ -10,6 +10,8 @@ piratepat_raidReturnPerMarketSize,Raid Return per Market Size,Int,2000,"Addition
 piratepat_seedBases,Starting Bases Funded,Int,2,"At game start (or when first enabled), the chest is seeded to fund this many bases, minus any that already exist.",0,5
 piratepat_seedReserve,Starting Reserve,Int,30000,"Operating reserve included in the starting war chest seed.",0,200000
 piratepat_maxBases,Max Operating Bases,Int,8,"Hard cap on simultaneously operating (raiding) pirate bases. Vanilla is 3.",1,15
+piratepat_baseKillContributionOffset,Contribution Offset per Base Kill,Int,150000,"Destroying a pirate base offsets your lifetime contribution figure by this much (never below zero) - redemption through demolition. Also reduces your income share, helping restore a pierced Piracy Respite.",0,1000000
+piratepat_offsetPerPirateFPDestroyed,Contribution Offset per Pirate FP,Int,300,"Destroying ordinary pirate fleets also offsets your contribution, at this many credits per fleet point of the destroyed fleet.",0,5000
 weightsHeader,Weights Header,Header,Contribution Weights,"Black market sales are valued at actual demand-adjusted credits, then weighted by usefulness to a pirate war effort. Purchases are plain revenue. Wash-trading (buy-and-sell-back) nets to zero.",,
 piratepat_buyWeight,Purchases,Double,1.0,"Weight on credits you spend buying from the black market.",0.0,5.0
 piratepat_weaponWeight,Weapons & Fighter LPCs,Double,3.0,"Weight on weapons and fighter wings sold - these directly arm raiders.",0.0,10.0

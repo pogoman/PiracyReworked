@@ -64,6 +64,7 @@ public class PiratePatModPlugin extends BaseModPlugin {
 
 		// transient: re-added every load, never serialized into the save
 		sector.getListenerManager().addListener(new BlackMarketListener(), true);
+		sector.getListenerManager().addListener(new PirateHuntListener(), true);
 
 		WarChestIntel.ensureAdded();
 	}

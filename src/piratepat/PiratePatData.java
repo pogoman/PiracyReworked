@@ -34,6 +34,8 @@ public class PiratePatData {
 	public static final String KEY_RAIDS_LAUNCHED = "piratepat_raidsLaunched";
 	public static final String KEY_RAIDS_SUCCEEDED = "piratepat_raidsSucceeded";
 	public static final String KEY_RAIDS_DEFEATED = "piratepat_raidsDefeated";
+	public static final String KEY_LT_KILL_OFFSET = "piratepat_ltKillOffset";
+	public static final String KEY_BASES_DESTROYED = "piratepat_basesDestroyed";
 
 	public static final int LEDGER_MAX_ENTRIES = 30;
 
@@ -143,6 +145,43 @@ public class PiratePatData {
 		if (ledgerText != null) addLedger(ledgerText, -amount);
 		return true;
 	}
+
+	/**
+	 * A pirate base was destroyed: the infrastructure the player's money
+	 * built is ash. Offsets the lifetime contribution figure (floor zero),
+	 * which also pulls the player's income share down - redemption through
+	 * demolition.
+	 */
+	public static void reportBaseDestroyed(String systemName) {
+		incrI(KEY_BASES_DESTROYED);
+		float offset = PiratePatConfig.baseKillContributionOffset();
+		float contributed = getF(KEY_LT_PLAYER);
+		float applied = Math.min(offset, contributed);
+		if (applied > 0) {
+			putF(KEY_LT_PLAYER, contributed - applied);
+			putF(KEY_LT_KILL_OFFSET, getF(KEY_LT_KILL_OFFSET) + applied);
+			addLedger("Pirate base in the " + systemName
+					+ " destroyed - your ledger with the sector lightens", -applied);
+		} else {
+			addLedger("Pirate base in the " + systemName + " destroyed", 0f);
+		}
+	}
+
+	/**
+	 * Destroying ordinary pirate fleets chips away at the contribution
+	 * ledger too - quiet accumulation, no per-kill ledger entries.
+	 */
+	public static void offsetFromPirateKills(float amount) {
+		if (amount <= 0) return;
+		float contributed = getF(KEY_LT_PLAYER);
+		float applied = Math.min(amount, contributed);
+		if (applied <= 0) return;
+		putF(KEY_LT_PLAYER, contributed - applied);
+		putF(KEY_LT_KILL_OFFSET, getF(KEY_LT_KILL_OFFSET) + applied);
+	}
+
+	public static float getLifetimeKillOffset() { return getF(KEY_LT_KILL_OFFSET); }
+	public static int getBasesDestroyed() { return getI(KEY_BASES_DESTROYED); }
 
 	public static void incrBasesPurchased() { incrI(KEY_BASES_PURCHASED); }
 	public static void incrRaidsLaunched() { incrI(KEY_RAIDS_LAUNCHED); }

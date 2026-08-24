@@ -153,6 +153,13 @@ public class WarChestIntel extends BaseIntelPlugin {
 		} else {
 			info.addPara("You have contributed nothing to the pirate war economy. So far.", opad);
 		}
+		float killOffset = PiratePatData.getLifetimeKillOffset();
+		if (killOffset > 0) {
+			info.addPara("Hunting pirates has offset %s of your contributions"
+					+ (PiratePatData.getBasesDestroyed() > 0
+							? " (" + PiratePatData.getBasesDestroyed() + " bases destroyed)" : "")
+					+ ".", 3f, pos, Misc.getDGSCredits(killOffset));
+		}
 
 		if (PatronageActivityIntel.isPiercingActive()) {
 			info.addPara("The underworld's wariness of you has faded - its war chest has never "

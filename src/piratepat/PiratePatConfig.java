@@ -54,6 +54,8 @@ public class PiratePatConfig {
 	public static int seedBases() { return i("piratepat_seedBases"); }
 	public static float seedReserve() { return i("piratepat_seedReserve"); }
 	public static int maxBases() { return i("piratepat_maxBases"); }
+	public static float baseKillContributionOffset() { return i("piratepat_baseKillContributionOffset"); }
+	public static float offsetPerPirateFPDestroyed() { return i("piratepat_offsetPerPirateFPDestroyed"); }
 
 	public static float buyWeight() { return f("piratepat_buyWeight"); }
 	public static float weaponWeight() { return f("piratepat_weaponWeight"); }
