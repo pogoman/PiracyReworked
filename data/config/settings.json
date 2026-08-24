@@ -1,5 +1,5 @@
 {
-	# Pirate Patronage - fallback values when LunaLib is not enabled
+	# Piracy Reworked - fallback values when LunaLib is not enabled
 
 	# Master switch. Off = the war chest economy freezes (bases keep running).
 	"piratepat_enabled": true,

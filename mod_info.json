@@ -1,6 +1,6 @@
 {
 	"id": "piratepat",
-	"name": "Pirate Patronage",
+	"name": "Piracy Reworked",
 	"author": "Tristan",
 	"version": "0.1.0",
 	"description": "The black market is pirate infrastructure - and every credit you spend there is revenue for the underworld. Your smuggling feeds a pirate war chest that finances raids and new bases; successful raids refill it, and left unchecked, piracy snowballs across the sector. Repel raids to contain it, hunt bases to roll it back - or keep fencing loot and watch the lights go out. Standalone. Configurable via LunaLib (optional).",

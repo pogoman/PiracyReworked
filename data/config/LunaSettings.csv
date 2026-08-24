@@ -1,5 +1,5 @@
 fieldID,fieldName,fieldType,defaultValue,fieldDescription,minValue,maxValue
-piratepat_enabled,Patronage Enabled,Boolean,true,"Master switch. Turning this off freezes the war chest economy (existing bases keep operating on vanilla rules).",,
+piratepat_enabled,Piracy Reworked Enabled,Boolean,true,"Master switch. Turning this off freezes the war chest economy (existing bases keep operating on vanilla rules).",,
 economyHeader,Economy Header,Header,The War Chest,"Your black market trades feed a pirate war chest. Bases earn passive income and pay to launch raids; successful raids return spoils. When the chest covers the next base's cost, the pirates expand.",,
 piratepat_baseCost,Base Cost,Int,150000,"War chest cost of the pirates' next base. Multiplied by the growth factor for each base already operating.",25000,1000000
 piratepat_baseCostGrowth,Base Cost Growth,Double,1.35,"Cost multiplier per already-operating base - makes each successive base harder to afford.",1.0,3.0

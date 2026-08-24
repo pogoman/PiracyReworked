@@ -1,4 +1,4 @@
-# Pirate Patronage
+# Piracy Reworked
 
 A standalone mod for Starsector 0.98a. The black market is pirate
 infrastructure - and every credit you spend there is revenue for the

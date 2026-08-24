@@ -25,7 +25,7 @@ public class WarChestIntel extends BaseIntelPlugin {
 	public static final String KEY = "$piratepat_intel";
 
 	/** Custom intel tag: gives the war chest its own tab in the intel screen. */
-	public static final String TAG_PATRONAGE = "Pirate Patronage";
+	public static final String TAG_PATRONAGE = "Piracy Reworked";
 
 	public static final int LEDGER_DISPLAY_LINES = 10;
 
