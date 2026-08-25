@@ -1,8 +1,9 @@
 fieldID,fieldName,fieldType,defaultValue,fieldDescription,minValue,maxValue
 piratepat_enabled,Piracy Reworked Enabled,Boolean,true,"Master switch. Turning this off freezes the war chest economy (existing bases keep operating on vanilla rules).",,
 economyHeader,Economy Header,Header,The War Chest,"Your black market trades feed a pirate war chest. Bases earn passive income and pay to launch raids; successful raids return spoils. When the chest covers the next base's cost, the pirates expand.",,
-piratepat_baseCost,Base Cost,Int,150000,"War chest cost of the pirates' next base. Multiplied by the growth factor for each base already operating.",25000,1000000
-piratepat_baseCostGrowth,Base Cost Growth,Double,1.35,"Cost multiplier per already-operating base - makes each successive base harder to afford.",1.0,3.0
+piratepat_baseCost,Base Cost (Tier 2),Int,150000,"War chest cost of a tier-2 pirate base. Each tier up or down multiplies by the tier cost growth.",25000,1000000
+piratepat_tierCostGrowth,Tier Cost Growth,Double,1.6,"Cost multiplier per tier: at defaults tier 1 ~94k, tier 3 ~240k, tier 4 ~384k, tier 5 ~614k. Higher = strongholds are a bigger investment.",1.1,3.0
+piratepat_recoveryBases,Recovery Threshold (Bases),Int,2,"Below this many operating bases the underworld rebuilds its footing: buys the best tier it can afford while reserving enough for another starter base. At or above it, it saves toward a base one tier above its current best.",1,5
 piratepat_incomePerBasePerMonth,Income per Base per Month,Int,2000,"Passive war chest income per operating base per month. Tuned so bases sustain their vanilla raid cadence but passive income alone never buys a new base.",0,20000
 piratepat_raidCostPerFP,Raid Cost per Fleet Point,Int,100,"Launching a raid costs this many credits per fleet point (tier-1 raid ~100 FP, tier-5 ~450 FP). A base skips its raid if the chest can't cover it.",0,1000
 piratepat_raidReturnCostFraction,Raid Return: Cost Recouped,Double,0.5,"Fraction of a successful raid's launch cost recouped as spoils.",0.0,2.0

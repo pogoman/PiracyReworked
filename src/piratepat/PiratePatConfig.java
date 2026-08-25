@@ -46,7 +46,13 @@ public class PiratePatConfig {
 	public static boolean enabled() { return b("piratepat_enabled"); }
 
 	public static float baseCost() { return i("piratepat_baseCost"); }
-	public static float baseCostGrowth() { return f("piratepat_baseCostGrowth"); }
+	public static float tierCostGrowth() { return f("piratepat_tierCostGrowth"); }
+	public static int recoveryBases() { return i("piratepat_recoveryBases"); }
+
+	/** Cost of a base by tier ordinal (0-based; baseCost anchors tier 2). */
+	public static float tierCost(int tierOrdinal) {
+		return baseCost() * (float) Math.pow(tierCostGrowth(), tierOrdinal - 1);
+	}
 	public static float incomePerBasePerMonth() { return i("piratepat_incomePerBasePerMonth"); }
 	public static float raidCostPerFP() { return i("piratepat_raidCostPerFP"); }
 	public static float raidReturnCostFraction() { return f("piratepat_raidReturnCostFraction"); }

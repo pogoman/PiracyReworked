@@ -110,11 +110,20 @@ public class WarChestIntel extends BaseIntelPlugin {
 						Misc.getDGSCredits(plunder));
 			}
 			if (mgr != null && bases < PiratePatConfig.maxBases()) {
-				float cost = mgr.getCurrentBaseCost();
-				int pct = (int) Math.min(100f, chest / cost * 100f);
-				info.addPara("Next base: %s (%s funded), built at tier %s given the current "
-						+ "war chest.", 3f, h,
-						Misc.getDGSCredits(cost), pct + "%", mgr.getExpectedTierRangeForChest());
+				PatronageBaseManager.PurchasePlan plan = mgr.getPurchasePlan();
+				int pct = (int) Math.min(100f, chest / Math.max(1f, plan.cost) * 100f);
+				String tierStr = "" + (plan.tierOrdinal + 1);
+				if (plan.recovery) {
+					info.addPara("The underworld is rebuilding its footing - next base: "
+							+ "tier %s, %s (%s funded).", 3f, h,
+							tierStr, Misc.getDGSCredits(plan.cost), pct + "%");
+				} else if (plan.saving) {
+					info.addPara("Saving toward a tier %s base: %s (%s funded).", 3f, h,
+							tierStr, Misc.getDGSCredits(plan.cost), pct + "%");
+				} else {
+					info.addPara("Ready to establish a tier %s base: %s.", 3f, h,
+							tierStr, Misc.getDGSCredits(plan.cost));
+				}
 				int freezeMonths = mgr.getSpawnFreezeMonthsRemaining();
 				if (freezeMonths > 0) {
 					info.addPara("The underworld is regrouping after recent losses - no new "

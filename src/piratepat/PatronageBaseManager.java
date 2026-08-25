@@ -254,8 +254,8 @@ public class PatronageBaseManager extends PirateBaseManager {
 
 		if (getActiveCount() >= PiratePatConfig.maxBases()) return;
 
-		float cost = getCurrentBaseCost();
-		if (PiratePatData.getChest() < cost) return;
+		PurchasePlan plan = getPurchasePlan();
+		if (plan.saving) return;
 
 		StarSystemAPI system = pickSystemForPirateBase();
 		if (system == null) return;
@@ -263,16 +263,19 @@ public class PatronageBaseManager extends PirateBaseManager {
 		String factionId = pickPirateFaction();
 		if (factionId == null) return;
 
-		PatronageBaseIntel intel = new PatronageBaseIntel(system, factionId, pickTier());
+		PirateBaseTier tier = PirateBaseTier.values()[plan.tierOrdinal];
+		PatronageBaseIntel intel = new PatronageBaseIntel(system, factionId, tier);
 		if (intel.isDone() || intel.isEnding()) return;
 
-		PiratePatData.trySpend(cost, "The underworld commissions a new base of operations");
+		PiratePatData.trySpend(plan.cost, "The underworld commissions a tier-"
+				+ (plan.tierOrdinal + 1) + " base of operations");
 		PiratePatData.incrBasesPurchased();
 		addActive(intel);
 
 		if (PiratePatConfig.debugLogging()) {
-			log.info("Purchased pirate base in " + system.getName() + " for " + (int) cost
-					+ ", tier " + intel.getTier());
+			log.info("Purchased tier-" + (plan.tierOrdinal + 1) + " pirate base in "
+					+ system.getName() + " for " + (int) plan.cost
+					+ (plan.recovery ? " (recovery)" : " (investment)"));
 		}
 	}
 
@@ -285,49 +288,72 @@ public class PatronageBaseManager extends PirateBaseManager {
 		return Math.max(1, Math.round(numSpawnChecksToSkip * CHECK_DAYS / 30f));
 	}
 
-	/** Cost of the pirates' next base: baseCost * growth^(operating bases). */
-	public float getCurrentBaseCost() {
-		return PiratePatConfig.baseCost()
-				* (float) Math.pow(PiratePatConfig.baseCostGrowth(), getActiveCount());
+	/** What the underworld intends to build next, and whether it can yet. */
+	public static class PurchasePlan {
+		public int tierOrdinal; // 0-based (0 = tier 1)
+		public float cost;
+		public boolean saving;   // wants it, can't afford it yet
+		public boolean recovery; // rebuilding footing vs investing upward
+	}
+
+	/**
+	 * The pirates' building doctrine, decided by circumstance each check:
+	 *
+	 * RECOVERY (below the configured base count): income first - buy the best
+	 * tier affordable while reserving enough for one more starter base, so a
+	 * poor underworld gets two wrecks earning, while a rich one recovers with
+	 * strongholds immediately.
+	 *
+	 * INVESTMENT (at or above it): quality - aspire to one tier above the
+	 * current best (capped at 5) and save until affordable; no cheap filler.
+	 *
+	 * No pacing beyond affordability: a flush chest chains builds every check.
+	 */
+	public PurchasePlan getPurchasePlan() {
+		PurchasePlan plan = new PurchasePlan();
+		int bases = getActiveCount();
+		float chest = PiratePatData.getChest();
+		plan.recovery = bases < PiratePatConfig.recoveryBases();
+
+		if (plan.recovery) {
+			float reserve = (bases + 1 < PiratePatConfig.recoveryBases())
+					? PiratePatConfig.tierCost(0) : 0f;
+			float budget = chest - reserve;
+			int best = -1;
+			for (int t = 0; t <= 4; t++) {
+				if (PiratePatConfig.tierCost(t) <= budget) best = t;
+			}
+			if (best < 0) {
+				plan.tierOrdinal = 0;
+				plan.cost = PiratePatConfig.tierCost(0);
+				plan.saving = true;
+			} else {
+				plan.tierOrdinal = best;
+				plan.cost = PiratePatConfig.tierCost(best);
+				plan.saving = false;
+			}
+		} else {
+			int highest = 0;
+			for (PirateBaseIntel base : getBases()) {
+				highest = Math.max(highest, base.getTier().ordinal());
+			}
+			plan.tierOrdinal = Math.min(4, highest + 1);
+			plan.cost = PiratePatConfig.tierCost(plan.tierOrdinal);
+			plan.saving = chest < plan.cost;
+		}
+		return plan;
 	}
 
 	/**
 	 * Vanilla tier table by campaign time, WITHOUT the vanilla rule that adds
 	 * 200 days per destroyed base - in this economy, killing a base destroys
 	 * the pirates' investment rather than teaching them to build better ones.
-	 *
-	 * Tier reflects WEALTH, not campaign time: a flush underworld builds a
-	 * strong base immediately, a poor one builds a wreck. Measured as the
-	 * chest's worth in base-costs, so it auto-scales with the cost config.
+	 * Routes to the purchase-plan doctrine so any stray caller agrees with
+	 * what checkBasePurchase would actually build.
 	 */
 	@Override
 	protected PirateBaseTier pickTier() {
-		float ratio = PiratePatData.getEarnedWealth() / Math.max(1f, PiratePatConfig.baseCost());
-
-		WeightedRandomPicker<PirateBaseTier> picker = new WeightedRandomPicker<PirateBaseTier>(random);
-		if (ratio < 1f) {
-			picker.add(PirateBaseTier.TIER_1_1MODULE, 10f);
-			picker.add(PirateBaseTier.TIER_2_1MODULE, 6f);
-		} else if (ratio < 2f) {
-			picker.add(PirateBaseTier.TIER_2_1MODULE, 10f);
-			picker.add(PirateBaseTier.TIER_3_2MODULE, 6f);
-		} else if (ratio < 4f) {
-			picker.add(PirateBaseTier.TIER_3_2MODULE, 10f);
-			picker.add(PirateBaseTier.TIER_4_3MODULE, 6f);
-		} else {
-			picker.add(PirateBaseTier.TIER_4_3MODULE, 10f);
-			picker.add(PirateBaseTier.TIER_5_3MODULE, 8f);
-		}
-		return picker.pick();
-	}
-
-	/** Human-readable tier range a base would spawn at given the current chest. */
-	public String getExpectedTierRangeForChest() {
-		float ratio = PiratePatData.getEarnedWealth() / Math.max(1f, PiratePatConfig.baseCost());
-		if (ratio < 1f) return "1-2";
-		if (ratio < 2f) return "2-3";
-		if (ratio < 4f) return "3-4";
-		return "4-5";
+		return PirateBaseTier.values()[getPurchasePlan().tierOrdinal];
 	}
 
 	/**

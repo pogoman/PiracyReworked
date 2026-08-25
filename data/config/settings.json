@@ -5,10 +5,16 @@
 	"piratepat_enabled": true,
 
 	# --- War chest economy ---
-	# Cost of the pirates' next base; multiplied by growth for each base they
-	# already operate, so base #5 is a real achievement of neglect.
+	# Bases are priced by TIER: baseCost is a tier-2 base, and each tier up or
+	# down multiplies by tierCostGrowth (tier 1 ~94k, 2 = 150k, 3 ~240k,
+	# 4 ~384k, 5 ~614k at defaults). The pirates decide what to buy by
+	# circumstance: below recoveryBases operating bases they rebuild their
+	# footing - best tier affordable while reserving enough for another
+	# starter; at or above it they save toward a base one tier above their
+	# current best. Builds chain as fast as ~10-day checks allow when flush.
 	"piratepat_baseCost": 150000,
-	"piratepat_baseCostGrowth": 1.35,
+	"piratepat_tierCostGrowth": 1.6,
+	"piratepat_recoveryBases": 2,
 
 	# Passive income per operating base per month. Tuned to ~90% of what an
 	# average raid costs over an average raid interval, so bases sustain their

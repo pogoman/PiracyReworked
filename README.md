@@ -27,9 +27,16 @@ contributions.
 **A closed-loop economy.** Operating bases earn passive income (tuned to
 sustain their vanilla raid cadence, no more). Launching a raid *costs* the
 chest credits per fleet point - a broke underworld doesn't sail. A successful
-raid pays spoils back with interest; a repelled raid is a pure loss. When the
-chest covers the cost of the next base (rising with each base already
-operating), the pirates expand - up to a cap far above vanilla's 3.
+raid pays spoils back with interest; a repelled raid is a pure loss.
+
+**Bases are priced by tier** (tier 1 ~94k up to tier 5 ~614k at defaults),
+and the pirates decide what to buy by circumstance: with their footing gone
+they rebuild it - the best tier affordable while reserving enough for another
+starter, so a poor underworld gets two wrecks earning while a rich one
+recovers with strongholds. Established, they save toward a base one tier
+above their current best - no cheap filler. There's no artificial pacing
+beyond affordability: a flush chest chains builds every couple of weeks, up
+to a cap far above vanilla's 3.
 
 **The strategic grammar:**
 - *Smuggle* and the underworld grows - left unchecked, it snowballs.
