@@ -116,6 +116,12 @@
 	"piratepat_bountySpawnProb": 0.33,
 	# fraction of each bounty that evaporates per month (0 = never forgotten)
 	"piratepat_bountyDecayPerMonth": 0.02,
+	# hunters weigh the job against your CURRENT fleet: they only take the
+	# contract if the fleet the bounty can fund is at least this fraction as
+	# strong as your deployed fleet. A huge endgame fleet shrugs off a small
+	# bounty; dock most of it for a stealth run and the same bounty is suddenly
+	# worth collecting. 0 = always hunt when activated (ignore your strength).
+	"piratepat_bountyWorthItFraction": 0.4,
 	# defeating a hunter fleet raises that faction's bounty - killing their
 	# hunters makes you more notorious, not less. Added as a flat amount plus
 	# a fraction of the standing bounty.

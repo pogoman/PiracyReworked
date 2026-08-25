@@ -10,6 +10,7 @@ import java.util.Set;
 import java.awt.Color;
 
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.FactionAPI;
 import com.fs.starfarer.api.ui.IntelUIAPI;
 import com.fs.starfarer.api.impl.campaign.ids.Factions;
@@ -142,6 +143,21 @@ public class PersonalBountyIntel extends BaseIntelPlugin {
 					+ "hunting concurrently.", opad);
 			info.addPara(BULLET + "Estimated hunter fleet strength: up to ~%s fleet points each.",
 					3f, h, "" + (int) fp);
+
+			// deterred-by-strength note
+			float frac = PiratePatConfig.bountyWorthItFraction();
+			CampaignFleetAPI player = Global.getSector().getPlayerFleet();
+			if (frac > 0f && player != null) {
+				float largest = 0f;
+				for (Float b : bounties.values()) largest = Math.max(largest, b);
+				if (BountyHunterManager.hunterFPForBounty(largest)
+						< player.getEffectiveStrength() * frac) {
+					info.addPara("Your current fleet is formidable enough that no hunter finds "
+							+ "the contract worth taking. Sail with a weaker fleet and that "
+							+ "changes.", opad, Misc.getPositiveHighlightColor(),
+							"no hunter finds the contract worth taking");
+				}
+			}
 		}
 
 		float decay = PiratePatConfig.bountyDecayPerMonth();

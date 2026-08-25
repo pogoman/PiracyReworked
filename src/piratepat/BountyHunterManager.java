@@ -79,6 +79,15 @@ public class BountyHunterManager implements EveryFrameScript {
 			}
 			if (getHunters(factionId).size() >= maxFleets) continue;
 
+			// hunters weigh the job against the player's CURRENT strength: skip
+			// if the fleet this bounty can fund isn't a credible threat to the
+			// fleet they'd have to fight. Docking ships drops the threshold.
+			float worthItFrac = PiratePatConfig.bountyWorthItFraction();
+			if (worthItFrac > 0f
+					&& hunterFPForBounty(bounty) < player.getEffectiveStrength() * worthItFrac) {
+				continue;
+			}
+
 			if (random.nextFloat() > PiratePatConfig.bountySpawnProb()) continue;
 
 			spawnHunterFleet(factionId, bounty, player);
@@ -106,9 +115,15 @@ public class BountyHunterManager implements EveryFrameScript {
 		}
 	}
 
-	protected void spawnHunterFleet(String factionId, float bounty, CampaignFleetAPI player) {
+	/** Fleet points the bounty can fund, capped at the per-fleet maximum. */
+	public static float hunterFPForBounty(float bounty) {
 		float fp = bounty / PiratePatConfig.bountyCreditsPerFP();
 		if (fp > PiratePatConfig.bountyMaxFPPerFleet()) fp = PiratePatConfig.bountyMaxFPPerFleet();
+		return fp;
+	}
+
+	protected void spawnHunterFleet(String factionId, float bounty, CampaignFleetAPI player) {
+		float fp = hunterFPForBounty(bounty);
 
 		// FleetCreatorMission difficulty units are roughly 15-20 FP each for
 		// a quality (mercenary) fleet
