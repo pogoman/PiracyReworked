@@ -111,8 +111,16 @@ public class BlackMarketListener implements ColonyInteractionListener {
 		amount *= Math.min(1f, suspicion / full);
 		if (amount <= 0) return;
 
+		float before = PiratePatData.getBounty(factionId);
 		boolean activated = PiratePatData.addBounty(factionId, amount);
 		PersonalBountyIntel.ensureAdded();
+		if (!activated && before <= 0f) {
+			// first, still-minor accrual: a quiet ledger line for provenance,
+			// so a sub-threshold bounty never seems to appear from nowhere
+			PiratePatData.addLedger(Misc.ucFirst(market.getFaction().getDisplayName())
+					+ " takes note of your black market dealings at " + market.getName()
+					+ " (minor bounty)", 0f);
+		}
 		if (activated) {
 			PiratePatData.addLedger(Misc.ucFirst(market.getFaction().getDisplayName())
 					+ " quietly posts a bounty on your head", 0f);
