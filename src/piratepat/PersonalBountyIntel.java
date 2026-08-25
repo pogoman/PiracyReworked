@@ -45,6 +45,15 @@ public class PersonalBountyIntel extends BaseIntelPlugin {
 		return "A Price On Your Head";
 	}
 
+	/**
+	 * Stay registered (so it reappears when a new bounty accrues) but drop out
+	 * of the intel list whenever nothing is owed - after decay or a payoff.
+	 */
+	@Override
+	public boolean isHidden() {
+		return PiratePatData.getTotalBounty() <= 0f;
+	}
+
 	@Override
 	public String getIcon() {
 		String crest = Global.getSector().getFaction(Factions.INDEPENDENT).getCrest();
