@@ -302,7 +302,7 @@ public class PatronageBaseManager extends PirateBaseManager {
 	 */
 	@Override
 	protected PirateBaseTier pickTier() {
-		float ratio = PiratePatData.getChest() / Math.max(1f, PiratePatConfig.baseCost());
+		float ratio = PiratePatData.getEarnedWealth() / Math.max(1f, PiratePatConfig.baseCost());
 
 		WeightedRandomPicker<PirateBaseTier> picker = new WeightedRandomPicker<PirateBaseTier>(random);
 		if (ratio < 1f) {
@@ -323,7 +323,7 @@ public class PatronageBaseManager extends PirateBaseManager {
 
 	/** Human-readable tier range a base would spawn at given the current chest. */
 	public String getExpectedTierRangeForChest() {
-		float ratio = PiratePatData.getChest() / Math.max(1f, PiratePatConfig.baseCost());
+		float ratio = PiratePatData.getEarnedWealth() / Math.max(1f, PiratePatConfig.baseCost());
 		if (ratio < 1f) return "1-2";
 		if (ratio < 2f) return "2-3";
 		if (ratio < 4f) return "3-4";

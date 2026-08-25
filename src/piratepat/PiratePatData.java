@@ -22,6 +22,7 @@ public class PiratePatData {
 
 	public static final String KEY_CHEST = "piratepat_chest";
 	public static final String KEY_SEEDED = "piratepat_seeded";
+	public static final String KEY_SEED_BASELINE = "piratepat_seedBaseline";
 	public static final String KEY_LEDGER = "piratepat_ledger";
 	public static final String KEY_NET_BOUGHT = "piratepat_netBought";
 	public static final String KEY_NET_SOLD = "piratepat_netSold";
@@ -72,6 +73,16 @@ public class PiratePatData {
 		putF(KEY_CHEST, value);
 	}
 
+	/** Startup seed, excluded from base-tier wealth scaling. 0 on old saves. */
+	public static float getSeedBaseline() {
+		return getF(KEY_SEED_BASELINE);
+	}
+
+	/** Chest wealth above the startup seed, what base tier scales with. */
+	public static float getEarnedWealth() {
+		return Math.max(0f, getChest() - getSeedBaseline());
+	}
+
 	public static boolean isSeeded() {
 		Object val = Global.getSector().getPersistentData().get(KEY_SEEDED);
 		return val instanceof Boolean && (Boolean) val;
@@ -93,6 +104,9 @@ public class PiratePatData {
 		}
 		setChest(getChest() + seed);
 		Global.getSector().getPersistentData().put(KEY_SEEDED, true);
+		// startup capital, not earned wealth: excluded from base-tier scaling
+		// so starting bases spawn weak (vanilla feel), not funded by the seed
+		putF(KEY_SEED_BASELINE, seed);
 		addLedger("The sector underworld pools its resources", seed);
 		if (PiratePatConfig.debugLogging()) {
 			log.info("Seeded war chest with " + (int) seed + " (existing bases: " + existingBases + ")");
