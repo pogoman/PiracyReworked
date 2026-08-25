@@ -114,6 +114,12 @@ public class WarChestIntel extends BaseIntelPlugin {
 				int pct = (int) Math.min(100f, chest / cost * 100f);
 				info.addPara("Next base: %s (%s funded)", 3f, h,
 						Misc.getDGSCredits(cost), pct + "%");
+				int freezeMonths = mgr.getSpawnFreezeMonthsRemaining();
+				if (freezeMonths > 0) {
+					info.addPara("The underworld is regrouping after recent losses - no new "
+							+ "base for about %s months, however flush the war chest.", 3f,
+							Misc.getPositiveHighlightColor(), "" + freezeMonths);
+				}
 			}
 		} else {
 			String flavor;

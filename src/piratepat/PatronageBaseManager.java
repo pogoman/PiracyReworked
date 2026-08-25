@@ -276,6 +276,15 @@ public class PatronageBaseManager extends PirateBaseManager {
 		}
 	}
 
+	/**
+	 * Approximate months until the post-destruction respawn freeze lifts.
+	 * Checks tick every ~10 game-days, so months ~= checks * 10 / 30.
+	 */
+	public int getSpawnFreezeMonthsRemaining() {
+		if (numSpawnChecksToSkip <= 0) return 0;
+		return Math.max(1, Math.round(numSpawnChecksToSkip * CHECK_DAYS / 30f));
+	}
+
 	/** Cost of the pirates' next base: baseCost * growth^(operating bases). */
 	public float getCurrentBaseCost() {
 		return PiratePatConfig.baseCost()
