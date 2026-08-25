@@ -112,8 +112,9 @@ public class WarChestIntel extends BaseIntelPlugin {
 			if (mgr != null && bases < PiratePatConfig.maxBases()) {
 				float cost = mgr.getCurrentBaseCost();
 				int pct = (int) Math.min(100f, chest / cost * 100f);
-				info.addPara("Next base: %s (%s funded)", 3f, h,
-						Misc.getDGSCredits(cost), pct + "%");
+				info.addPara("Next base: %s (%s funded), built at tier %s given the current "
+						+ "war chest.", 3f, h,
+						Misc.getDGSCredits(cost), pct + "%", mgr.getExpectedTierRangeForChest());
 				int freezeMonths = mgr.getSpawnFreezeMonthsRemaining();
 				if (freezeMonths > 0) {
 					info.addPara("The underworld is regrouping after recent losses - no new "

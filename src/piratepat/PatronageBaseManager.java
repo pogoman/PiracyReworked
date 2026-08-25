@@ -295,27 +295,39 @@ public class PatronageBaseManager extends PirateBaseManager {
 	 * Vanilla tier table by campaign time, WITHOUT the vanilla rule that adds
 	 * 200 days per destroyed base - in this economy, killing a base destroys
 	 * the pirates' investment rather than teaching them to build better ones.
+	 *
+	 * Tier reflects WEALTH, not campaign time: a flush underworld builds a
+	 * strong base immediately, a poor one builds a wreck. Measured as the
+	 * chest's worth in base-costs, so it auto-scales with the cost config.
 	 */
 	@Override
 	protected PirateBaseTier pickTier() {
-		float days = getDaysSinceStart();
+		float ratio = PiratePatData.getChest() / Math.max(1f, PiratePatConfig.baseCost());
 
-		WeightedRandomPicker<PirateBaseTier> picker = new WeightedRandomPicker<PirateBaseTier>();
-		if (days < 360) {
+		WeightedRandomPicker<PirateBaseTier> picker = new WeightedRandomPicker<PirateBaseTier>(random);
+		if (ratio < 1f) {
 			picker.add(PirateBaseTier.TIER_1_1MODULE, 10f);
+			picker.add(PirateBaseTier.TIER_2_1MODULE, 6f);
+		} else if (ratio < 2f) {
 			picker.add(PirateBaseTier.TIER_2_1MODULE, 10f);
-		} else if (days < 720f) {
-			picker.add(PirateBaseTier.TIER_2_1MODULE, 10f);
+			picker.add(PirateBaseTier.TIER_3_2MODULE, 6f);
+		} else if (ratio < 4f) {
 			picker.add(PirateBaseTier.TIER_3_2MODULE, 10f);
-		} else if (days < 1080f) {
-			picker.add(PirateBaseTier.TIER_3_2MODULE, 10f);
-			picker.add(PirateBaseTier.TIER_4_3MODULE, 10f);
+			picker.add(PirateBaseTier.TIER_4_3MODULE, 6f);
 		} else {
-			picker.add(PirateBaseTier.TIER_3_2MODULE, 10f);
 			picker.add(PirateBaseTier.TIER_4_3MODULE, 10f);
-			picker.add(PirateBaseTier.TIER_5_3MODULE, 10f);
+			picker.add(PirateBaseTier.TIER_5_3MODULE, 8f);
 		}
 		return picker.pick();
+	}
+
+	/** Human-readable tier range a base would spawn at given the current chest. */
+	public String getExpectedTierRangeForChest() {
+		float ratio = PiratePatData.getChest() / Math.max(1f, PiratePatConfig.baseCost());
+		if (ratio < 1f) return "1-2";
+		if (ratio < 2f) return "2-3";
+		if (ratio < 4f) return "3-4";
+		return "4-5";
 	}
 
 	/**
