@@ -12,6 +12,9 @@ piratepat_seedReserve,Starting Reserve,Int,30000,"Operating reserve included in 
 piratepat_maxBases,Max Operating Bases,Int,8,"Hard cap on simultaneously operating (raiding) pirate bases. Vanilla is 3.",1,15
 piratepat_baseKillContributionOffset,Contribution Offset per Base Kill,Int,150000,"Destroying a pirate base offsets your lifetime contribution figure by this much (never below zero) - redemption through demolition. Also reduces your income share, helping restore a pierced Piracy Respite.",0,1000000
 piratepat_offsetPerPirateFPDestroyed,Contribution Offset per Pirate FP,Int,300,"Destroying ordinary pirate fleets also offsets your contribution, at this many credits per fleet point of the destroyed fleet.",0,5000
+plunderHeader,Plunder Header,Header,Shipping Plunder,"Pirates preying on trade shipping is plunder that flows to the war chest. Every colony sector-wide is checked for shipping disruptions; the pirate-attributable share becomes chest income. Never counts against your own contribution.",,
+piratepat_plunderEnabled,Shipping Plunder Enabled,Boolean,true,"Feed the war chest from pirate-caused shipping disruptions sector-wide.",,
+piratepat_plunderPerDisruptionPerSize,Plunder per Disruption per Size,Int,600,"War chest income per point of a disrupted colony's size, times the pirate-attributable fraction, each time its shipping is freshly disrupted.",0,10000
 weightsHeader,Weights Header,Header,Contribution Weights,"Black market sales are valued at actual demand-adjusted credits, then weighted by usefulness to a pirate war effort. Purchases are plain revenue. Wash-trading (buy-and-sell-back) nets to zero.",,
 piratepat_buyWeight,Purchases,Double,1.0,"Weight on credits you spend buying from the black market.",0.0,5.0
 piratepat_weaponWeight,Weapons & Fighter LPCs,Double,3.0,"Weight on weapons and fighter wings sold - these directly arm raiders.",0.0,10.0

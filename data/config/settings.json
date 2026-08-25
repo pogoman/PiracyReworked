@@ -40,6 +40,16 @@
 	# battle you fought in)
 	"piratepat_offsetPerPirateFPDestroyed": 300,
 
+	# --- Shipping plunder ---
+	# Pirates preying on trade shipping is plunder, and plunder flows to the
+	# war chest. Every colony sector-wide is polled for shipping disruptions;
+	# the share attributable to pirates (by local pirate strength, or fully
+	# if the system carries a pirate-activity condition from a base) is
+	# credited to the chest at this rate per point of the raided colony's
+	# size. Chest income only - never counts against your contribution.
+	"piratepat_plunderEnabled": true,
+	"piratepat_plunderPerDisruptionPerSize": 600,
+
 	# --- Black market contribution weights ---
 	# Sales are valued at actual (demand-adjusted) credits, then weighted by
 	# what the goods are worth to a pirate war effort. Purchases are plain

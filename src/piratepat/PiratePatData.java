@@ -28,6 +28,8 @@ public class PiratePatData {
 
 	public static final String KEY_LT_PLAYER = "piratepat_ltPlayer";
 	public static final String KEY_LT_PASSIVE = "piratepat_ltPassive";
+	public static final String KEY_LT_PLUNDER = "piratepat_ltPlunder";
+	public static final String KEY_PLUNDER_PENDING = "piratepat_plunderPending";
 	public static final String KEY_LT_RETURNS = "piratepat_ltReturns";
 	public static final String KEY_LT_COSTS = "piratepat_ltCosts";
 	public static final String KEY_BASES_PURCHASED = "piratepat_basesPurchased";
@@ -112,6 +114,29 @@ public class PiratePatData {
 		setChest(getChest() + amount);
 		putF(KEY_LT_PASSIVE, getF(KEY_LT_PASSIVE) + amount);
 	}
+
+	/**
+	 * Plunder from pirate-disrupted shipping. Chest income only - never
+	 * touches the player's contribution figure. Accumulates a pending total
+	 * that {@link #flushPlunderLedger} periodically summarizes, to avoid
+	 * per-event ledger spam across a whole sector of colonies.
+	 */
+	public static void addPlunder(float amount) {
+		if (amount <= 0) return;
+		setChest(getChest() + amount);
+		putF(KEY_LT_PLUNDER, getF(KEY_LT_PLUNDER) + amount);
+		putF(KEY_PLUNDER_PENDING, getF(KEY_PLUNDER_PENDING) + amount);
+	}
+
+	/** Emit one ledger line for plunder accumulated since the last flush. */
+	public static void flushPlunderLedger() {
+		float pending = getF(KEY_PLUNDER_PENDING);
+		if (pending <= 0) return;
+		putF(KEY_PLUNDER_PENDING, 0f);
+		addLedger("Pirates plundered disrupted shipping across the sector", pending);
+	}
+
+	public static float getLifetimePlunder() { return getF(KEY_LT_PLUNDER); }
 
 	public static void addRaidReturn(float amount, String targetName) {
 		if (amount <= 0) return;

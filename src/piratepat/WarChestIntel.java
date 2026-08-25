@@ -104,6 +104,11 @@ public class WarChestIntel extends BaseIntelPlugin {
 			float income = PiratePatConfig.incomePerBasePerMonth() * bases;
 			info.addPara("Underworld income: %s per month from %s operating bases.", 3f, h,
 					Misc.getDGSCredits(income), "" + bases);
+			float plunder = PiratePatData.getLifetimePlunder();
+			if (plunder > 0) {
+				info.addPara("Plunder from disrupted shipping to date: %s.", 3f, h,
+						Misc.getDGSCredits(plunder));
+			}
 			if (mgr != null && bases < PiratePatConfig.maxBases()) {
 				float cost = mgr.getCurrentBaseCost();
 				int pct = (int) Math.min(100f, chest / cost * 100f);

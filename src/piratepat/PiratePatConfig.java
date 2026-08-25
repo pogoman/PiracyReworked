@@ -57,6 +57,9 @@ public class PiratePatConfig {
 	public static float baseKillContributionOffset() { return i("piratepat_baseKillContributionOffset"); }
 	public static float offsetPerPirateFPDestroyed() { return i("piratepat_offsetPerPirateFPDestroyed"); }
 
+	public static boolean plunderEnabled() { return b("piratepat_plunderEnabled"); }
+	public static float plunderPerDisruptionPerSize() { return i("piratepat_plunderPerDisruptionPerSize"); }
+
 	public static float buyWeight() { return f("piratepat_buyWeight"); }
 	public static float weaponWeight() { return f("piratepat_weaponWeight"); }
 	public static float shipWeight() { return f("piratepat_shipWeight"); }

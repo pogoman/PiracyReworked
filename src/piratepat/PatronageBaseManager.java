@@ -1,8 +1,12 @@
 package piratepat;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 
@@ -13,7 +17,12 @@ import com.fs.starfarer.api.campaign.StarSystemAPI;
 import com.fs.starfarer.api.campaign.comm.CommMessageAPI.MessageClickAction;
 import com.fs.starfarer.api.campaign.comm.IntelInfoPlugin;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
+import com.fs.starfarer.api.campaign.econ.MarketConditionAPI;
+import com.fs.starfarer.api.impl.campaign.command.WarSimScript;
 import com.fs.starfarer.api.impl.campaign.econ.RecentUnrest;
+import com.fs.starfarer.api.impl.campaign.econ.ShippingDisruption;
+import com.fs.starfarer.api.impl.campaign.ids.Conditions;
+import com.fs.starfarer.api.impl.campaign.ids.Factions;
 import com.fs.starfarer.api.impl.campaign.intel.BaseIntelPlugin;
 import com.fs.starfarer.api.impl.campaign.intel.MessageIntel;
 import com.fs.starfarer.api.impl.campaign.ids.Stats;
@@ -48,6 +57,13 @@ public class PatronageBaseManager extends PirateBaseManager {
 
 	protected IntervalUtil econInterval = new IntervalUtil(25f, 35f);
 	protected IntervalUtil spawnInterval = new IntervalUtil(CHECK_DAYS * 0.75f, CHECK_DAYS * 1.25f);
+	protected IntervalUtil plunderInterval = new IntervalUtil(4f, 6f);
+
+	// transient: rebuilt each load. Tracks disruption timeLeft per market to
+	// detect fresh disruptions; baselined suppresses crediting on the first
+	// poll after a load (so pre-existing disruptions aren't re-counted).
+	protected transient Map<String, Float> lastDisruptionSeen;
+	protected transient boolean plunderBaselined;
 
 	/**
 	 * XStream skips constructors and field initializers when loading a save,
@@ -60,7 +76,10 @@ public class PatronageBaseManager extends PirateBaseManager {
 		if (random == null) random = new java.util.Random();
 		if (econInterval == null) econInterval = new IntervalUtil(25f, 35f);
 		if (spawnInterval == null) spawnInterval = new IntervalUtil(CHECK_DAYS * 0.75f, CHECK_DAYS * 1.25f);
+		if (plunderInterval == null) plunderInterval = new IntervalUtil(4f, 6f);
 		if (trackedRaids == null) trackedRaids = new ArrayList<RaidIntel>();
+		lastDisruptionSeen = new HashMap<String, Float>();
+		plunderBaselined = false;
 		return this;
 	}
 
@@ -106,8 +125,16 @@ public class PatronageBaseManager extends PirateBaseManager {
 				float income = PiratePatConfig.incomePerBasePerMonth() * getActiveCount();
 				PiratePatData.addPassiveIncome(income);
 				PiratePatData.decayNetTrade();
+				PiratePatData.flushPlunderLedger();
 			}
 			applyDefenseScaling();
+		}
+
+		plunderInterval.advance(days);
+		if (plunderInterval.intervalElapsed()) {
+			if (PiratePatConfig.enabled() && PiratePatConfig.plunderEnabled()) {
+				pollShippingDisruptions();
+			}
 		}
 
 		spawnInterval.advance(days);
@@ -311,6 +338,72 @@ public class PatronageBaseManager extends PirateBaseManager {
 			}
 		}
 		return result;
+	}
+
+	/**
+	 * Pirates preying on trade shipping is plunder, and plunder funds the war
+	 * chest. Polls every colony sector-wide for shipping disruptions; a fresh
+	 * disruption (its timeLeft rose since the last poll) credits the chest by
+	 * the colony's size times the pirate-attributable fraction. No per-event
+	 * ledger line - the pending total is summarized monthly.
+	 *
+	 * Cheap: the full scan only null-checks a condition; the pirate-strength
+	 * computation runs only for markets actually disrupted (a couple dozen
+	 * sector-wide at most), and the whole poll fires on a ~5-day game-time
+	 * interval, so time compression never multiplies it.
+	 */
+	protected void pollShippingDisruptions() {
+		if (lastDisruptionSeen == null) lastDisruptionSeen = new HashMap<String, Float>();
+		Set<String> stillDisrupted = new HashSet<String>();
+		float rate = PiratePatConfig.plunderPerDisruptionPerSize();
+
+		for (MarketAPI market : Global.getSector().getEconomy().getMarketsCopy()) {
+			MarketConditionAPI mc = market.getCondition(Conditions.SHIPPING_DISRUPTION);
+			if (mc == null || !(mc.getPlugin() instanceof ShippingDisruption)) continue;
+			float timeLeft = ((ShippingDisruption) mc.getPlugin()).getDisruptionTimeLeft();
+			if (timeLeft <= 0f) continue;
+
+			String id = market.getId();
+			stillDisrupted.add(id);
+			Float last = lastDisruptionSeen.get(id);
+			lastDisruptionSeen.put(id, timeLeft);
+
+			// suppress crediting on the first poll after a load
+			if (!plunderBaselined) continue;
+			// fresh if newly disrupted, or timeLeft jumped up (reset to ~120)
+			boolean fresh = (last == null) || (timeLeft > last + 1f);
+			if (!fresh) continue;
+
+			float pf = pirateFractionOfDanger(market);
+			if (pf <= 0f) continue;
+			PiratePatData.addPlunder(rate * market.getSize() * pf);
+		}
+
+		// forget markets no longer disrupted so the map stays small
+		lastDisruptionSeen.keySet().retainAll(stillDisrupted);
+		plunderBaselined = true;
+	}
+
+	/**
+	 * How much of the danger around a colony is the pirates' doing. A pirate
+	 * activity condition (only applied by a pirate base targeting the system)
+	 * is full attribution; otherwise the pirate share of local enemy strength.
+	 */
+	protected float pirateFractionOfDanger(MarketAPI market) {
+		StarSystemAPI system = market.getStarSystem();
+		if (system == null) return 0f;
+		if (market.hasCondition(Conditions.PIRATE_ACTIVITY)) return 1f;
+
+		FactionAPI pirates = Global.getSector().getFaction(Factions.PIRATES);
+		FactionAPI owner = market.getFaction();
+		if (pirates == null || owner == null) return 0f;
+		if (!pirates.isHostileTo(owner)) return 0f;
+
+		float pirateStr = WarSimScript.getFactionStrength(pirates, system);
+		if (pirateStr <= 0f) return 0f;
+		float enemyStr = WarSimScript.getEnemyStrength(owner, system);
+		if (enemyStr <= pirateStr) return 1f;
+		return pirateStr / enemyStr;
 	}
 
 	/**
