@@ -1,11 +1,18 @@
 package piratepat;
 
+import java.util.Random;
+
+import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.CampaignFleetAPI;
+import com.fs.starfarer.api.campaign.FleetAssignment;
+import com.fs.starfarer.api.campaign.SectorEntityToken;
 import com.fs.starfarer.api.campaign.StarSystemAPI;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.impl.campaign.ids.Factions;
 import com.fs.starfarer.api.impl.campaign.intel.bases.PirateBaseIntel;
 import com.fs.starfarer.api.impl.campaign.intel.raid.RaidIntel;
 import com.fs.starfarer.api.impl.campaign.intel.raid.RaidIntel.RaidStageStatus;
+import com.fs.starfarer.api.impl.campaign.missions.FleetCreatorMission;
 import com.fs.starfarer.api.util.Misc;
 
 /**
@@ -16,10 +23,105 @@ import com.fs.starfarer.api.util.Misc;
  */
 public class PatronageBaseIntel extends PirateBaseIntel {
 
+	public static final String GARRISON_FLAG = "$piratepat_garrison";
+
 	protected StarSystemAPI lastRaidTarget = null;
+
+	// transient: rebuilt each load; the garrison fleet itself persists in the
+	// world and is re-found by flag, so these just gate spawn/respawn timing
+	protected transient boolean garrisonSpawnedOnce;
+	protected transient float garrisonRespawnElapsed;
 
 	public PatronageBaseIntel(StarSystemAPI system, String factionId, PirateBaseTier tier) {
 		super(system, factionId, tier);
+	}
+
+	@Override
+	protected void advanceImpl(float amount) {
+		super.advanceImpl(amount);
+		if (!PiratePatConfig.enabled() || !PiratePatConfig.garrisonEnabled()) return;
+		manageGarrison(Global.getSector().getClock().convertToDays(amount));
+	}
+
+	/**
+	 * Keeps a tier-scaled defensive fleet stationed on the base. A brand-new
+	 * base is defended at once (no sniping newborns); a destroyed garrison
+	 * re-forms after a delay while the base stands. The fleet is found in the
+	 * world by flag, so it survives save/load without duplicating.
+	 */
+	protected void manageGarrison(float days) {
+		if (isEnding() || isEnded()) return;
+		SectorEntityToken e = getEntity();
+		if (e == null || e.getContainingLocation() == null) return;
+
+		CampaignFleetAPI g = findGarrison();
+		if (g != null) {
+			garrisonSpawnedOnce = true;
+			garrisonRespawnElapsed = 0f;
+			return;
+		}
+		if (!garrisonSpawnedOnce) { // fresh base: defend immediately
+			garrisonSpawnedOnce = true;
+			spawnGarrison();
+			return;
+		}
+		garrisonRespawnElapsed += days;
+		if (garrisonRespawnElapsed < PiratePatConfig.garrisonRespawnDays()) return;
+		garrisonRespawnElapsed = 0f;
+		spawnGarrison();
+	}
+
+	protected CampaignFleetAPI findGarrison() {
+		SectorEntityToken e = getEntity();
+		if (e == null || e.getContainingLocation() == null) return null;
+		String id = getMarket().getId();
+		for (CampaignFleetAPI f : e.getContainingLocation().getFleets()) {
+			if (f.isAlive() && id.equals(f.getMemoryWithoutUpdate().getString(GARRISON_FLAG))) {
+				return f;
+			}
+		}
+		return null;
+	}
+
+	protected void spawnGarrison() {
+		SectorEntityToken e = getEntity();
+		if (e == null || e.getContainingLocation() == null) return;
+
+		int ord = getTier().ordinal();
+		float fp = PiratePatConfig.garrisonFPBase() + ord * PiratePatConfig.garrisonFPPerTier();
+		if (fp <= 0f) return;
+		int difficulty = Math.round(fp / 18f);
+		if (difficulty < 1) difficulty = 1;
+		if (difficulty > 20) difficulty = 20;
+
+		FleetCreatorMission m = new FleetCreatorMission(new Random());
+		m.beginFleet();
+		m.createStandardFleet(difficulty, getMarket().getFactionId(), e.getLocationInHyperspace());
+		m.triggerSetPirateFleet();
+		m.triggerMakeLowRepImpact();
+		m.triggerMakeHostileAndAggressive();
+
+		CampaignFleetAPI fleet = m.createFleet();
+		if (fleet == null) return;
+
+		fleet.setName("Base Garrison");
+		fleet.getMemoryWithoutUpdate().set(GARRISON_FLAG, getMarket().getId());
+		e.getContainingLocation().addEntity(fleet);
+		fleet.setLocation(e.getLocation().x, e.getLocation().y);
+		fleet.addAssignment(FleetAssignment.ORBIT_AGGRESSIVE, e, Float.MAX_VALUE, "guarding the base");
+	}
+
+	protected void despawnGarrison() {
+		CampaignFleetAPI g = findGarrison();
+		if (g != null && g.getContainingLocation() != null) {
+			g.getContainingLocation().removeEntity(g);
+		}
+	}
+
+	@Override
+	protected void notifyEnding() {
+		super.notifyEnding();
+		despawnGarrison();
 	}
 
 	/**

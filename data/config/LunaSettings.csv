@@ -25,6 +25,11 @@ piratepat_shipWeight,Ships,Double,2.0,"Weight on hulls sold on the black market.
 piratepat_commodityWeight,Commodities,Double,1.0,"Weight on general commodities (including drugs and organs - the pirates would have fenced those anyway).",0.0,5.0
 piratepat_oreWeight,Raw Ores,Double,0.5,"Weight on raw ores - of little use to a war effort.",0.0,5.0
 piratepat_blueprintBonus,Blueprint Bonus,Int,25000,"Flat war chest bonus when a blueprint is sold on the black market (the vanilla behavior of pirates learning it still applies).",0,200000
+garrisonHeader,Garrison Header,Header,Base Garrison,"A defensive fleet stationed on each base so a solo assault faces a real fight, not a bare station. Scales with tier; built with standard pirate generation (uses sold blueprints); re-forms if destroyed while the base stands.",,
+piratepat_garrisonEnabled,Garrison Enabled,Boolean,true,"Station a tier-scaled defensive fleet on each pirate base.",,
+piratepat_garrisonFPBase,Garrison FP (Tier 1),Int,40,"Fleet points of a tier-1 base garrison.",0,300
+piratepat_garrisonFPPerTier,Garrison FP per Tier,Int,55,"Additional garrison fleet points per tier above 1 (tier 5 = base + 4x this).",0,150
+piratepat_garrisonRespawnDays,Garrison Respawn Days,Int,30,"Days before a destroyed garrison re-forms, if the base still stands.",1,180
 defenseHeader,Defense Header,Header,Base Defenses,"Vanilla base stations get restored as tier rises, but their defense fleets never grow. With scaling on, higher-tier bases field more and bigger patrols.",,
 piratepat_defenseScaling,Defense Scaling,Boolean,true,"Tier 3: +1 medium patrol. Tier 4: +1 medium +1 heavy. Tier 5: +2 medium +2 heavy.",,
 piratepat_defenseFleetSizeMax,Defense Fleet Size at Tier 5,Double,2.0,"Patrol fleet size multiplier at tier 5 (scales linearly from 1.0 at tier 1).",1.0,4.0

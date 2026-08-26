@@ -77,6 +77,18 @@
 	# vanilla behavior of pirates learning it).
 	"piratepat_blueprintBonus": 25000,
 
+	# --- Base garrison ---
+	# A defensive fleet stationed on each base, so a solo assault faces a real
+	# battle group and not a bare station. Strength scales with tier (FP =
+	# base + perTier x tier ordinal, so tier 1 ~40 up to tier 5 ~260). Built
+	# with standard pirate generation, so it uses the pirates' roster
+	# including any blueprints you've sold them. Re-forms this many days after
+	# being destroyed if the base still stands; despawns with the base.
+	"piratepat_garrisonEnabled": true,
+	"piratepat_garrisonFPBase": 40,
+	"piratepat_garrisonFPPerTier": 55,
+	"piratepat_garrisonRespawnDays": 30,
+
 	# --- Base defenses ---
 	# Scale base defense fleets with base tier (vanilla stations get restored
 	# with tier, but defenders stay 2 light + 1 medium patrol forever).

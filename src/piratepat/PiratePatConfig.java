@@ -75,6 +75,11 @@ public class PiratePatConfig {
 	public static float oreWeight() { return f("piratepat_oreWeight"); }
 	public static float blueprintBonus() { return i("piratepat_blueprintBonus"); }
 
+	public static boolean garrisonEnabled() { return b("piratepat_garrisonEnabled"); }
+	public static float garrisonFPBase() { return i("piratepat_garrisonFPBase"); }
+	public static float garrisonFPPerTier() { return i("piratepat_garrisonFPPerTier"); }
+	public static float garrisonRespawnDays() { return i("piratepat_garrisonRespawnDays"); }
+
 	public static boolean defenseScaling() { return b("piratepat_defenseScaling"); }
 	public static float defenseFleetSizeMax() { return f("piratepat_defenseFleetSizeMax"); }
 
