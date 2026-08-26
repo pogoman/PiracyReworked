@@ -16,6 +16,13 @@
 	"piratepat_tierCostGrowth": 1.6,
 	"piratepat_recoveryBases": 2,
 
+	# After a base is destroyed the pirates pause before rebuilding. The pause
+	# scales with wealth: a flush underworld regroups fast (their money is the
+	# threat), a broke one stays suppressed. Bounds in months; applied live, so
+	# refilling the chest also shortens an existing pause.
+	"piratepat_rebuildFreezeMinMonths": 1,
+	"piratepat_rebuildFreezeMaxMonths": 12,
+
 	# Passive income per operating base per month. Tuned to ~90% of what an
 	# average raid costs over an average raid interval, so bases sustain their
 	# vanilla raid cadence but passive income alone never buys a new base.

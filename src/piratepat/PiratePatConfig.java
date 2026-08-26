@@ -48,6 +48,8 @@ public class PiratePatConfig {
 	public static float baseCost() { return i("piratepat_baseCost"); }
 	public static float tierCostGrowth() { return f("piratepat_tierCostGrowth"); }
 	public static int recoveryBases() { return i("piratepat_recoveryBases"); }
+	public static float rebuildFreezeMinMonths() { return f("piratepat_rebuildFreezeMinMonths"); }
+	public static float rebuildFreezeMaxMonths() { return f("piratepat_rebuildFreezeMaxMonths"); }
 
 	/** Cost of a base by tier ordinal (0-based; baseCost anchors tier 2). */
 	public static float tierCost(int tierOrdinal) {

@@ -243,8 +243,26 @@ public class PatronageBaseManager extends PirateBaseManager {
 		}
 	}
 
+	/**
+	 * Post-destruction rebuild pause, in spawn-checks, scaled by wealth: a
+	 * flush chest regroups near the minimum, an empty one near the maximum.
+	 * Reference is the cost of a top-tier base, so "flush" means "could fund
+	 * a stronghold." Applied as a live cap, so it retroactively shortens an
+	 * over-long pause (e.g. a legacy vanilla freeze) once the chest is rich.
+	 */
+	protected int wealthScaledFreezeChecks() {
+		float ref = Math.max(1f, PiratePatConfig.tierCost(5));
+		float wealthRatio = Math.min(1f, PiratePatData.getChest() / ref);
+		float maxM = PiratePatConfig.rebuildFreezeMaxMonths();
+		float minM = PiratePatConfig.rebuildFreezeMinMonths();
+		float months = maxM - (maxM - minM) * wealthRatio;
+		return Math.max(0, Math.round(months * 30f / CHECK_DAYS));
+	}
+
 	protected void checkBasePurchase() {
-		// vanilla's post-base-destruction freeze
+		// post-destruction rebuild pause, capped to a wealth-scaled maximum
+		int freezeCap = wealthScaledFreezeChecks();
+		if (numSpawnChecksToSkip > freezeCap) numSpawnChecksToSkip = freezeCap;
 		if (numSpawnChecksToSkip > 0) {
 			numSpawnChecksToSkip--;
 			return;
@@ -284,8 +302,11 @@ public class PatronageBaseManager extends PirateBaseManager {
 	 * Checks tick every ~10 game-days, so months ~= checks * 10 / 30.
 	 */
 	public int getSpawnFreezeMonthsRemaining() {
-		if (numSpawnChecksToSkip <= 0) return 0;
-		return Math.max(1, Math.round(numSpawnChecksToSkip * CHECK_DAYS / 30f));
+		// reflect the live wealth cap so the intel shows the real wait, not a
+		// stale over-long value that hasn't been capped down by a check yet
+		int checks = Math.min(numSpawnChecksToSkip, wealthScaledFreezeChecks());
+		if (checks <= 0) return 0;
+		return Math.max(1, Math.round(checks * CHECK_DAYS / 30f));
 	}
 
 	/** What the underworld intends to build next, and whether it can yet. */
