@@ -47,7 +47,7 @@ piratepat_bountyMaxFPPerFleet,Max Fleet Points per Fleet,Int,200,"Cap on a singl
 piratepat_bountyCreditsPerExtraFleet,Credits per Extra Fleet,Int,250000,"One additional concurrent hunter fleet per this much bounty, up to the cap below.",50000,2000000
 piratepat_bountyMaxFleetsPerFaction,Max Concurrent Fleets per Faction,Int,3,"Cap on simultaneous hunter fleets funded by one faction's bounty.",1,6
 piratepat_bountySpawnProb,Spawn Chance per Check,Double,0.33,"Chance per ~10-day check (per faction with an active bounty and a free hunter slot) that a hunter fleet is dispatched.",0.05,1.0
-piratepat_bountyDecayPerMonth,Bounty Decay per Month,Double,0.02,"Fraction of each bounty that evaporates monthly if you stop adding to it. 0 = never forgotten.",0.0,0.25
+piratepat_bountyGrowthPerMonth,Bounty Growth per Month,Double,0.02,"Monthly interest on each standing bounty - it compounds upward while unpaid. Positive grows, negative decays (bounties fade), 0 = static.",-0.1,0.25
 piratepat_bountyWorthItFraction,Hunter Risk Threshold,Double,0.4,"Hunters only take the contract if the fleet the bounty can fund is at least this fraction as strong as your CURRENT deployed fleet. Big fleet + small bounty = left alone; dock your fleet and the same bounty draws hunters. 0 = always hunt when activated.",0.0,2.0
 piratepat_bountyPerKillFlat,Bounty per Hunter Killed (Flat),Int,15000,"Flat amount added to a faction's bounty each time you defeat one of its hunter fleets - notoriety, not relief.",0,200000
 piratepat_bountyPerKillFraction,Bounty per Hunter Killed (Fraction),Double,0.1,"Additional fraction of the standing bounty added each time you defeat one of its hunter fleets.",0.0,1.0

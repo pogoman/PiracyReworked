@@ -160,11 +160,14 @@ public class PersonalBountyIntel extends BaseIntelPlugin {
 			}
 		}
 
-		float decay = PiratePatConfig.bountyDecayPerMonth();
-		if (decay > 0) {
-			info.addPara("Bounties fade by about %s per month if you stop adding to them. "
-					+ "Memories are long, but not infinite.", opad, h,
-					(int) Math.round(decay * 100f) + "%");
+		float growth = PiratePatConfig.bountyGrowthPerMonth();
+		if (growth > 0) {
+			info.addPara("Each standing bounty grows by about %s per month - interest on your "
+					+ "notoriety, compounding until you pay it off.", opad, neg,
+					(int) Math.round(growth * 100f) + "%");
+		} else if (growth < 0) {
+			info.addPara("Bounties fade by about %s per month if you stop adding to them.", opad, h,
+					(int) Math.round(-growth * 100f) + "%");
 		}
 		info.addPara("Destroying hunter fleets raises the sponsor's bounty - notoriety "
 				+ "compounds.", opad, neg, "raises");

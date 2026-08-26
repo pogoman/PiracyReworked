@@ -57,7 +57,7 @@ public class BountyHunterManager implements EveryFrameScript {
 
 		monthly.advance(days);
 		if (monthly.intervalElapsed()) {
-			PiratePatData.decayBounties();
+			PiratePatData.growBounties();
 		}
 
 		checkInterval.advance(days);

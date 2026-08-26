@@ -284,13 +284,17 @@ public class PiratePatData {
 		bounties().remove(factionId);
 	}
 
-	/** Monthly decay; forgotten below 1000 credits. */
-	public static void decayBounties() {
-		float decay = PiratePatConfig.bountyDecayPerMonth();
-		if (decay <= 0) return;
+	/**
+	 * Monthly interest on the player's notoriety: standing bounties compound
+	 * upward while unpaid. A negative rate would decay instead (forgotten
+	 * below 1000 credits); at the default positive rate nothing is forgotten.
+	 */
+	public static void growBounties() {
+		float rate = PiratePatConfig.bountyGrowthPerMonth();
+		if (rate == 0f) return;
 		List<String> remove = new ArrayList<String>();
 		for (Map.Entry<String, Float> entry : bounties().entrySet()) {
-			float val = entry.getValue() * (1f - decay);
+			float val = entry.getValue() * (1f + rate);
 			if (val < 1000f) remove.add(entry.getKey());
 			else entry.setValue(val);
 		}

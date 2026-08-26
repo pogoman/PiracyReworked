@@ -139,8 +139,9 @@
 	# spawn roll: every ~10 days per faction with an active bounty and a free
 	# hunter slot
 	"piratepat_bountySpawnProb": 0.33,
-	# fraction of each bounty that evaporates per month (0 = never forgotten)
-	"piratepat_bountyDecayPerMonth": 0.02,
+	# monthly interest on each standing bounty - it compounds upward while
+	# unpaid (positive = grow, negative = decay/forget, 0 = static)
+	"piratepat_bountyGrowthPerMonth": 0.02,
 	# hunters weigh the job against your CURRENT fleet: they only take the
 	# contract if the fleet the bounty can fund is at least this fraction as
 	# strong as your deployed fleet. A huge endgame fleet shrugs off a small
