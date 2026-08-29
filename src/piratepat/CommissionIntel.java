@@ -122,10 +122,22 @@ public class CommissionIntel extends BaseIntelPlugin {
 				launchCheckTimer = 0f;
 				if (tryLaunchRaid()) return;
 			}
-			stallDays += days;
-			if (stallDays > PiratePatConfig.brokerStallDays()) {
+			// the stall clock only runs while the network HAS a base that
+			// could sail but isn't taking the job. With zero bases the order
+			// simply waits - the deposit sits in the war chest, quite
+			// literally financing the reconstruction that will fulfill it.
+			if (BrokerBarEvent.countCommissionCapableBases() > 0) {
+				stallDays += days;
+				if (stallDays > PiratePatConfig.brokerStallDays()) {
+					refund(PiratePatConfig.brokerRefundUnserved(),
+							"the network could not mount the operation");
+					return;
+				}
+			}
+			// absolute failsafe so an order can't hang forever
+			if (elapsed > 365f) {
 				refund(PiratePatConfig.brokerRefundUnserved(),
-						"the network could not mount the operation");
+						"the network never recovered enough to mount the operation");
 			}
 			break;
 		case RAIDING:
@@ -351,8 +363,15 @@ public class CommissionIntel extends BaseIntelPlugin {
 
 		switch (state) {
 		case SOURCING:
-			info.addPara("The network is working out where such a thing can be found - "
-					+ "and who will be made to part with it.", opad);
+			if (BrokerBarEvent.countCommissionCapableBases() <= 0) {
+				info.addPara("The network has no operating bases to mount the acquisition - "
+						+ "your deposit is financing its reconstruction. The order will wait "
+						+ "until the underworld can sail again.", opad,
+						Misc.getHighlightColor(), "financing its reconstruction");
+			} else {
+				info.addPara("The network is working out where such a thing can be found - "
+						+ "and who will be made to part with it.", opad);
+			}
 			break;
 		case RAIDING:
 			info.addPara("A pirate raid is underway against %s. If it succeeds, your "

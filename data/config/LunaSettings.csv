@@ -23,15 +23,15 @@ piratepat_titheEnabled,Underworld Tithe Enabled,Boolean,true,"Feed the war chest
 piratepat_titheRate,Tithe Rate,Double,0.25,"Monthly rate applied to each market's illegal export volume times commodity base price.",0.0,2.0
 piratepat_titheFreePortMult,Free Port Multiplier,Double,2.0,"Free ports fence everyone's contraband and pay accordingly. Applies to all free ports, yours included - your colonies' cut shows as its own intel line.",1.0,5.0
 piratepat_titheNoBaseFraction,No-Base Trickle Fraction,Double,0.25,"With zero operating bases only this fraction of the tithe flows. Eradication buys quiet, but piracy follows civilization - the trickle eventually re-founds a base. 0 = true dormancy (only player trade revives the underworld).",0.0,1.0
-brokerHeader,Broker Header,Header,The Broker,"A fixer in bars on black-market worlds takes commissions for goods no legal market sells - colony-grade industrial equipment and rare blueprints. Deposits go straight into the war chest, and fulfillment is a REAL raid by an operating base against whoever holds the goods. Deposits count as personal contribution in full, and the raided faction's personal bounty on you grows.",,
-piratepat_brokerEnabled,Broker Enabled,Boolean,true,"The fixer appears in bars at markets with a black market (needs at least one operating war-chest base).",,
+brokerHeader,Broker Header,Header,The Broker,"A fixer in bars on black-market worlds takes commissions for goods no legal market sells - colony-grade industrial equipment and rare blueprints. Deposits go straight into the war chest, and fulfillment is a REAL raid by an operating base against whoever holds the goods. With zero bases the order waits while your deposit finances the rebuild. Deposits count as personal contribution in full, and the raided faction's personal bounty on you grows.",,
+piratepat_brokerEnabled,Broker Enabled,Boolean,true,"The fixer appears in bars at markets with a black market - operating bases or not.",,
 piratepat_brokerPriceMult,Commission Price Multiplier,Double,2.5,"Commission price as a multiple of the item's base value.",1.0,10.0
 piratepat_brokerMaxConcurrent,Max Open Commissions,Int,2,"Open commissions allowed at once.",1,10
 piratepat_brokerBpOffers,Blueprint Offers,Int,3,"Rotating blueprint offers per market per month.",1,10
 piratepat_brokerBountyFraction,Bounty Fraction,Double,0.75,"Fraction of the deposit added to the raided faction's personal bounty on you - a raid is loud, and the underworld talks.",0.0,2.0
 piratepat_brokerRefundFailed,Refund When Repelled,Double,0.5,"Deposit fraction refunded when the commissioned raid is repelled.",0.0,1.0
 piratepat_brokerRefundUnserved,Refund When Unserved,Double,0.9,"Deposit fraction refunded when no raid could be mounted at all.",0.0,1.0
-piratepat_brokerStallDays,Stall Days,Int,60,"Days the network keeps trying to mount the raid before giving up and refunding.",10,365
+piratepat_brokerStallDays,Stall Days,Int,60,"Days the network keeps failing to mount the raid while HAVING an operating base, before refunding. With zero bases the order waits instead (up to a year).",10,365
 weightsHeader,Weights Header,Header,Contribution Weights,"Black market sales are valued at actual demand-adjusted credits, then weighted by usefulness to a pirate war effort. Purchases are plain revenue. Wash-trading (buy-and-sell-back) nets to zero.",,
 piratepat_buyWeight,Purchases,Double,1.0,"Weight on credits you spend buying from the black market.",0.0,5.0
 piratepat_weaponWeight,Weapons & Fighter LPCs,Double,3.0,"Weight on weapons and fighter wings sold - these directly arm raiders.",0.0,10.0

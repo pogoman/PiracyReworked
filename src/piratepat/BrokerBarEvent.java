@@ -32,7 +32,9 @@ import com.fs.starfarer.api.util.WeightedRandomPicker;
  * industrial equipment, and blueprints "liberated" from faction archives.
  * The deposit is paid up front and goes straight into the pirate war chest;
  * fulfillment is a real raid, launched by an operating war-chest base
- * against whichever system holds the goods. No operating bases, no service.
+ * against whichever system holds the goods. The broker deals even when the
+ * underworld has no bases - the deposit is then quite literally financing
+ * their reconstruction, and the order waits until the network can sail.
  */
 public class BrokerBarEvent extends BaseBarEventWithPerson {
 
@@ -66,7 +68,6 @@ public class BrokerBarEvent extends BaseBarEventWithPerson {
 		if (!PiratePatConfig.enabled() || !PiratePatConfig.brokerEnabled()) return false;
 		if (!market.hasSubmarket(Submarkets.SUBMARKET_BLACK)) return false;
 		if (CommissionIntel.activeCount() >= PiratePatConfig.brokerMaxConcurrent()) return false;
-		if (countCommissionCapableBases() <= 0) return false;
 		regen(market);
 		return true;
 	}
@@ -193,6 +194,12 @@ public class BrokerBarEvent extends BaseBarEventWithPerson {
 			text.addPara("You have no doubt the pirates will keep a copy of any blueprint "
 					+ "that passes through their hands.", Misc.getNegativeHighlightColor(),
 					"keep a copy");
+		}
+		if (countCommissionCapableBases() <= 0) {
+			text.addPara("\"One caveat, in the spirit of honest dealing: the network is... "
+					+ "rebuilding, just now. No operating bases. Your deposit will help with "
+					+ "that, as it happens. But delivery waits on the fleet that fetches it, "
+					+ "so - patience.\"", Misc.getHighlightColor(), "rebuilding");
 		}
 		options.addOption("Pay the deposit of " + Misc.getDGSCredits(entry.price),
 				OptionId.CONFIRM);
