@@ -316,11 +316,14 @@ public class BrokerDialog implements InteractionDialogPlugin {
 
 		int cap = priceCapFor(importance());
 		beyondReach = 0;
+		// don't offer a blueprint the player already has an order out for
+		java.util.Set<String> inFlight = CommissionIntel.activeItemKeys();
 		for (ShipHullSpecAPI spec : Global.getSettings().getAllShipHullSpecs()) {
 			if (!spec.hasTag(Items.TAG_RARE_BP)) continue;
 			// fighter hulls are LPCs, not ship blueprints
 			if (spec.getHullSize() == HullSize.FIGHTER) continue;
 			if (Global.getSector().getPlayerFaction().knowsShip(spec.getHullId())) continue;
+			if (inFlight.contains(CommissionIntel.itemKey(CommissionIntel.SHIP_BP, spec.getHullId()))) continue;
 			int price = (int) (priceForSpecial(CommissionIntel.SHIP_BP, spec.getHullId())
 					* PiratePatConfig.brokerPriceMult());
 			if (price <= 0) continue;
@@ -334,6 +337,7 @@ public class BrokerDialog implements InteractionDialogPlugin {
 		for (WeaponSpecAPI spec : Global.getSettings().getAllWeaponSpecs()) {
 			if (!spec.hasTag(Items.TAG_RARE_BP)) continue;
 			if (Global.getSector().getPlayerFaction().knowsWeapon(spec.getWeaponId())) continue;
+			if (inFlight.contains(CommissionIntel.itemKey(CommissionIntel.WEAPON_BP, spec.getWeaponId()))) continue;
 			int price = (int) (priceForSpecial(CommissionIntel.WEAPON_BP, spec.getWeaponId())
 					* PiratePatConfig.brokerPriceMult());
 			if (price <= 0) continue;

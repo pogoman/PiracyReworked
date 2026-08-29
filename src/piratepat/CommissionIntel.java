@@ -90,17 +90,36 @@ public class CommissionIntel extends BaseIntelPlugin {
 		Global.getSector().getIntelManager().addIntel(this);
 	}
 
+	public static boolean isOpen(CommissionIntel intel) {
+		return !intel.isEnding() && !intel.isEnded()
+				&& (intel.state == CommissionState.SOURCING || intel.state == CommissionState.RAIDING
+					|| intel.state == CommissionState.DELIVERING);
+	}
+
 	public static int activeCount() {
 		int count = 0;
 		for (IntelInfoPlugin curr : Global.getSector().getIntelManager().getIntel(CommissionIntel.class)) {
-			CommissionIntel intel = (CommissionIntel) curr;
-			if (!intel.isEnding() && !intel.isEnded()
-					&& (intel.state == CommissionState.SOURCING || intel.state == CommissionState.RAIDING
-						|| intel.state == CommissionState.DELIVERING)) {
-				count++;
-			}
+			if (isOpen((CommissionIntel) curr)) count++;
 		}
 		return count;
+	}
+
+	/**
+	 * itemId:itemParam keys of every order still in flight, so catalogs can
+	 * avoid offering something the player has already paid to acquire.
+	 */
+	public static Set<String> activeItemKeys() {
+		Set<String> keys = new LinkedHashSet<String>();
+		for (IntelInfoPlugin curr : Global.getSector().getIntelManager().getIntel(CommissionIntel.class)) {
+			CommissionIntel intel = (CommissionIntel) curr;
+			if (!isOpen(intel)) continue;
+			keys.add(itemKey(intel.itemId, intel.itemParam));
+		}
+		return keys;
+	}
+
+	public static String itemKey(String itemId, String itemParam) {
+		return itemId + ":" + (itemParam == null ? "" : itemParam);
 	}
 
 	@Override
