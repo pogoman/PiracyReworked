@@ -27,6 +27,12 @@ public class PatronageBaseIntel extends PirateBaseIntel {
 
 	protected StarSystemAPI lastRaidTarget = null;
 
+	// broker commission riding on this base's next raid, if any; also a
+	// raids-in-flight counter so a commission never launches while another
+	// raid from this base is still out (its outcome report would be ambiguous)
+	protected CommissionIntel commission = null;
+	protected int raidsInFlight = 0;
+
 	// transient: rebuilt each load; the garrison fleet itself persists in the
 	// world and is re-found by flag, so these just gate spawn/respawn timing
 	protected transient boolean garrisonSpawnedOnce;
@@ -171,13 +177,52 @@ public class PatronageBaseIntel extends PirateBaseIntel {
 		}
 
 		lastRaidTarget = target;
-		PiratePatData.incrRaidsLaunched();
+		// detect whether the raid actually launched (super can still bail on
+		// missing jump points) so in-flight tracking and stats stay honest
+		int before = Global.getSector().getIntelManager().getIntel(RaidIntel.class).size();
 		super.startRaid(target, raidFP);
+		int after = Global.getSector().getIntelManager().getIntel(RaidIntel.class).size();
+		if (after > before) {
+			raidsInFlight++;
+			PiratePatData.incrRaidsLaunched();
+		}
+	}
+
+	/** No commission while another raid is out - its report would be ambiguous. */
+	public boolean canCarryCommission() {
+		return commission == null && raidsInFlight == 0;
+	}
+
+	/**
+	 * Launch a raid on behalf of a broker commission. The raid is a normal
+	 * war-chest raid in every respect (launch cost, spoils, repel-ability);
+	 * the commission just rides along and hears about the outcome.
+	 */
+	public boolean launchCommissionRaid(StarSystemAPI target, CommissionIntel c) {
+		if (!canCarryCommission()) return false;
+		commission = c;
+		int before = raidsInFlight;
+		startRaid(target, getRaidFP());
+		if (raidsInFlight <= before) {
+			commission = null;
+			return false;
+		}
+		// hold the base's own raid roll until the commission raid resolves
+		raidTimeoutMonths = Math.max(raidTimeoutMonths, 2);
+		return true;
 	}
 
 	@Override
 	public void notifyRaidEnded(RaidIntel raid, RaidStageStatus status) {
 		super.notifyRaidEnded(raid, status);
+
+		if (raidsInFlight > 0) raidsInFlight--;
+		if (commission != null) {
+			CommissionIntel c = commission;
+			commission = null;
+			c.reportRaidOutcome(status == RaidStageStatus.SUCCESS);
+		}
+
 		if (!PiratePatConfig.enabled()) return;
 
 		if (status == RaidStageStatus.SUCCESS) {

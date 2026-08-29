@@ -63,6 +63,54 @@
 	"piratepat_plunderEnabled": true,
 	"piratepat_plunderPerDisruptionPerSize": 600,
 
+	# --- Underworld tithe ---
+	# The underworld collects a monthly cut of the sector's ILLEGAL trade -
+	# the same commodity flows vanilla's economy already routes as smuggling
+	# fleets. Income that scales with the size of the economy (including every
+	# colony you found) instead of with your personal black market habit, so
+	# pirates stay financed late game even if you never fence another crate.
+	# Counted as sector income, never as your contribution - in fact it
+	# steadily dilutes your share of underworld income, helping restore a
+	# pierced Piracy Respite when you lay off.
+	"piratepat_titheEnabled": true,
+	# monthly rate applied to (illegal export volume x commodity base price)
+	# summed per market
+	"piratepat_titheRate": 0.25,
+	# free ports fence everyone's contraband, and pay accordingly. Applies to
+	# ALL free ports - your own colonies' underworld shows as its own intel
+	# line, so you can see exactly what your open ports are worth to them.
+	"piratepat_titheFreePortMult": 2.0,
+	# with ZERO operating bases only this fraction flows (no organization to
+	# collect it). Eradication buys years of quiet, but piracy follows
+	# civilization: the trickle eventually re-founds a base. 0 = true
+	# dormancy as before (only player trade can revive the underworld).
+	"piratepat_titheNoBaseFraction": 0.25,
+
+	# --- The broker ---
+	# An underworld fixer appears in bars at markets with a black market,
+	# taking commissions for goods no legal market sells: colony-grade
+	# industrial equipment and rare blueprints. Deposit paid in full up
+	# front, straight into the war chest - and fulfillment is a REAL raid
+	# launched by an operating war-chest base against whichever system holds
+	# the goods. No operating bases, no service. Deposits count as personal
+	# contribution at full weight, and the raided faction's personal bounty
+	# on you rises by a cut of the deposit - a raid is loud.
+	"piratepat_brokerEnabled": true,
+	# commission price as a multiple of the item's base value
+	"piratepat_brokerPriceMult": 2.5,
+	# open commissions allowed at once
+	"piratepat_brokerMaxConcurrent": 2,
+	# rotating blueprint offers per market per month
+	"piratepat_brokerBpOffers": 3,
+	# fraction of the deposit added to the raided faction's personal bounty
+	"piratepat_brokerBountyFraction": 0.75,
+	# refund fraction when the raid is repelled (the network tried and bled)
+	"piratepat_brokerRefundFailed": 0.5,
+	# refund fraction when no raid could be mounted at all
+	"piratepat_brokerRefundUnserved": 0.9,
+	# days the network keeps trying to mount the raid before giving up
+	"piratepat_brokerStallDays": 60,
+
 	# --- Black market contribution weights ---
 	# Sales are valued at actual (demand-adjusted) credits, then weighted by
 	# what the goods are worth to a pirate war effort. Purchases are plain
@@ -139,15 +187,32 @@
 	# spawn roll: every ~10 days per faction with an active bounty and a free
 	# hunter slot
 	"piratepat_bountySpawnProb": 0.33,
-	# monthly interest on each standing bounty - it compounds upward while
-	# unpaid (positive = grow, negative = decay/forget, 0 = static)
+	# monthly interest on each standing bounty that is ACTIVE (drawing hunters) -
+	# it compounds upward while unpaid (positive = grow, negative = decay/forget,
+	# 0 = static)
 	"piratepat_bountyGrowthPerMonth": 0.02,
+	# while a bounty is still DORMANT - too small to draw hunters (below the
+	# activation floor, or dwarfed by your current fleet so no hunter finds it
+	# worth the risk) - it festers faster than an active one, compounding at this
+	# higher monthly rate until it grows into a real threat and activates.
+	"piratepat_bountyDormantGrowthPerMonth": 0.1,
 	# hunters weigh the job against your CURRENT fleet: they only take the
-	# contract if the fleet the bounty can fund is at least this fraction as
-	# strong as your deployed fleet. A huge endgame fleet shrugs off a small
-	# bounty; dock most of it for a stealth run and the same bounty is suddenly
-	# worth collecting. 0 = always hunt when activated (ignore your strength).
+	# contract if the total hunter strength the bounty can MOTIVATE (uncapped -
+	# bounty/creditsPerFP times the concurrent fleets it funds) is at least this
+	# fraction as strong as your deployed fleet. A huge endgame fleet shrugs off a
+	# SMALL bounty; dock most of it for a stealth run and the same bounty is
+	# suddenly worth collecting. Because the figure is uncapped and the bounty
+	# festers upward while deferred, no fleet is ever permanently exempt - a big
+	# enough price always finds takers (so deployment-cost-mod whale fleets still
+	# get hunted, they just cost more to trigger). 0 = always hunt when activated.
 	"piratepat_bountyWorthItFraction": 0.4,
+	# the contract is to destroy YOUR FLEET, so it is worthless against a decoy.
+	# If your fleet's ship value is below this fraction of the posted bounty, the
+	# bounty is FROZEN - hidden and not growing, no hunters dispatched - so you
+	# cannot clear a large bounty by sailing a throwaway fleet and dying on
+	# purpose. It thaws once your fleet is worth enough to be a real prize.
+	# 0 = disable the frozen-vs-cheap-fleet check entirely.
+	"piratepat_bountyMinFleetValueFraction": 0.25,
 	# defeating a hunter fleet raises that faction's bounty - killing their
 	# hunters makes you more notorious, not less. Added as a flat amount plus
 	# a fraction of the standing bounty.

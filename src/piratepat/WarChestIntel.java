@@ -109,6 +109,19 @@ public class WarChestIntel extends BaseIntelPlugin {
 				info.addPara("Plunder from disrupted shipping to date: %s.", 3f, h,
 						Misc.getDGSCredits(plunder));
 			}
+			float lastTithe = PiratePatData.getLastTithe();
+			if (lastTithe > 0 || PiratePatData.getLifetimeTithe() > 0) {
+				info.addPara("Tithe on the sector's smuggling trade: %s last month "
+						+ "(%s to date).", 3f, h,
+						Misc.getDGSCredits(lastTithe),
+						Misc.getDGSCredits(PiratePatData.getLifetimeTithe()));
+				float colonyTithe = PiratePatData.getLastColonyTithe();
+				if (colonyTithe > 0) {
+					info.addPara(BULLET + "of which your own colonies' underworld "
+							+ "provided %s.", 3f, neg,
+							Misc.getDGSCredits(colonyTithe));
+				}
+			}
 			if (mgr != null && bases < PiratePatConfig.maxBases()) {
 				PatronageBaseManager.PurchasePlan plan = mgr.getPurchasePlan();
 				int pct = (int) Math.min(100f, chest / Math.max(1f, plan.cost) * 100f);
@@ -177,6 +190,12 @@ public class WarChestIntel extends BaseIntelPlugin {
 		} else {
 			info.addPara("You have funneled %s into the pirate war economy.", opad, neg,
 					Misc.getDGSCredits(gross));
+			float commissions = PiratePatData.getLifetimeCommissions();
+			if (commissions > 0) {
+				info.addPara(BULLET + "of which %s was paid as broker commissions - "
+						+ "raids you personally financed.", 3f, neg,
+						Misc.getDGSCredits(commissions));
+			}
 			if (killOffset > 0) {
 				info.addPara("Hunting pirates has offset %s of that"
 						+ (PiratePatData.getBasesDestroyed() > 0

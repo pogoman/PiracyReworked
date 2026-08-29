@@ -2,8 +2,10 @@ package piratepat;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 
@@ -38,6 +40,11 @@ public class PiratePatData {
 	public static final String KEY_RAIDS_DEFEATED = "piratepat_raidsDefeated";
 	public static final String KEY_LT_KILL_OFFSET = "piratepat_ltKillOffset";
 	public static final String KEY_BASES_DESTROYED = "piratepat_basesDestroyed";
+	public static final String KEY_LT_TITHE = "piratepat_ltTithe";
+	public static final String KEY_LT_COLONY_TITHE = "piratepat_ltColonyTithe";
+	public static final String KEY_LAST_TITHE = "piratepat_lastTithe";
+	public static final String KEY_LAST_COLONY_TITHE = "piratepat_lastColonyTithe";
+	public static final String KEY_LT_COMMISSIONS = "piratepat_ltCommissions";
 
 	public static final int LEDGER_MAX_ENTRIES = 30;
 
@@ -115,6 +122,43 @@ public class PiratePatData {
 		setChest(getChest() + amount);
 		putF(KEY_LT_PASSIVE, getF(KEY_LT_PASSIVE) + amount);
 	}
+
+	/**
+	 * One month's underworld tithe on the sector's illegal trade. Chest
+	 * income credited to the sector at large, never to the player - the
+	 * player-colony portion is tracked purely for the intel screen.
+	 */
+	public static void addTithe(float total, float playerColonyPart) {
+		if (total <= 0) return;
+		setChest(getChest() + total);
+		putF(KEY_LT_TITHE, getF(KEY_LT_TITHE) + total);
+		putF(KEY_LT_COLONY_TITHE, getF(KEY_LT_COLONY_TITHE) + playerColonyPart);
+		putF(KEY_LAST_TITHE, total);
+		putF(KEY_LAST_COLONY_TITHE, playerColonyPart);
+		addLedger("Tithe on the sector's smuggling trade", total);
+	}
+
+	public static float getLifetimeTithe() { return getF(KEY_LT_TITHE); }
+	public static float getLifetimeColonyTithe() { return getF(KEY_LT_COLONY_TITHE); }
+	public static float getLastTithe() { return getF(KEY_LAST_TITHE); }
+	public static float getLastColonyTithe() { return getF(KEY_LAST_COLONY_TITHE); }
+
+	/**
+	 * A broker commission deposit: the most patron-like act there is, so the
+	 * full amount counts as personal contribution on top of funding the chest.
+	 */
+	public static void addCommissionDeposit(float amount, String itemName, String marketName) {
+		if (amount <= 0) return;
+		setChest(getChest() + amount);
+		putF(KEY_LT_PLAYER, getF(KEY_LT_PLAYER) + amount);
+		putF(KEY_LT_COMMISSIONS, getF(KEY_LT_COMMISSIONS) + amount);
+		addLedger("Commission deposit at " + marketName + ": " + itemName, amount);
+		if (PiratePatConfig.debugLogging()) {
+			log.info("Commission deposit: " + (int) amount + " for " + itemName);
+		}
+	}
+
+	public static float getLifetimeCommissions() { return getF(KEY_LT_COMMISSIONS); }
 
 	/**
 	 * Plunder from pirate-disrupted shipping. Chest income only - never
@@ -227,10 +271,16 @@ public class PiratePatData {
 	public static int getRaidsSucceeded() { return getI(KEY_RAIDS_SUCCEEDED); }
 	public static int getRaidsDefeated() { return getI(KEY_RAIDS_DEFEATED); }
 
-	/** Player's share of all war chest income, 0..1. */
+	/**
+	 * Player's share of all war chest income, 0..1. The denominator is every
+	 * income stream the underworld has - passive base income, raid returns,
+	 * plunder, and the sector-wide tithe - so as the sector's own underworld
+	 * economy grows, the player's share (and with it respite piercing)
+	 * naturally dilutes.
+	 */
 	public static float getPlayerShare() {
 		float total = getLifetimePlayerContribution() + getLifetimePassiveIncome()
-				+ getLifetimeRaidReturns();
+				+ getLifetimeRaidReturns() + getLifetimePlunder() + getLifetimeTithe();
 		if (total <= 0) return 0f;
 		return getLifetimePlayerContribution() / total;
 	}
@@ -238,6 +288,24 @@ public class PiratePatData {
 	// --- personal bounties (factionId -> credits) ---
 
 	public static final String KEY_BOUNTIES = "piratepat_bounties";
+
+	/**
+	 * Factions whose bounty is currently ACTIVE (drawing hunters). Maintained by
+	 * BountyHunterManager on its ~10-day check: it drives the intel's visibility
+	 * and gates the one-time "price on your head" notification so it fires only
+	 * on the dormant -> active transition, never on every accrual.
+	 */
+	public static final String KEY_ACTIVE_BOUNTIES = "piratepat_activeBounties";
+
+	@SuppressWarnings("unchecked")
+	public static Set<String> activeBountyFactions() {
+		Object val = Global.getSector().getPersistentData().get(KEY_ACTIVE_BOUNTIES);
+		if (!(val instanceof Set)) {
+			val = new LinkedHashSet<String>();
+			Global.getSector().getPersistentData().put(KEY_ACTIVE_BOUNTIES, val);
+		}
+		return (Set<String>) val;
+	}
 
 	@SuppressWarnings("unchecked")
 	public static Map<String, Float> bounties() {
@@ -282,6 +350,7 @@ public class PiratePatData {
 	/** Clear a faction's bounty entirely (paid off). */
 	public static void clearBounty(String factionId) {
 		bounties().remove(factionId);
+		activeBountyFactions().remove(factionId);
 	}
 
 	/**

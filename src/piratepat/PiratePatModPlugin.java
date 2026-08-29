@@ -8,6 +8,7 @@ import com.fs.starfarer.api.BaseModPlugin;
 import com.fs.starfarer.api.EveryFrameScript;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.SectorAPI;
+import com.fs.starfarer.api.impl.campaign.intel.bar.events.BarEventManager;
 import com.fs.starfarer.api.impl.campaign.intel.bases.PirateBaseManager;
 
 public class PiratePatModPlugin extends BaseModPlugin {
@@ -65,6 +66,14 @@ public class PiratePatModPlugin extends BaseModPlugin {
 		// transient: re-added every load, never serialized into the save
 		sector.getListenerManager().addListener(new BlackMarketListener(), true);
 		sector.getListenerManager().addListener(new PirateHuntListener(), true);
+
+		// the fixer: broker commissions at bars on black-market worlds. The
+		// bar event manager serializes its creators, so guard against dupes.
+		BarEventManager bars = BarEventManager.getInstance();
+		if (bars != null && !bars.hasEventCreator(BrokerBarEventCreator.class)) {
+			bars.addEventCreator(new BrokerBarEventCreator());
+			log.info("Registered BrokerBarEventCreator");
+		}
 
 		WarChestIntel.ensureAdded();
 	}

@@ -124,6 +124,7 @@ public class PatronageBaseManager extends PirateBaseManager {
 			if (PiratePatConfig.enabled()) {
 				float income = PiratePatConfig.incomePerBasePerMonth() * getActiveCount();
 				PiratePatData.addPassiveIncome(income);
+				UnderworldTithe.collectMonthly(getActiveCount());
 				PiratePatData.decayNetTrade();
 				PiratePatData.flushPlunderLedger();
 			}

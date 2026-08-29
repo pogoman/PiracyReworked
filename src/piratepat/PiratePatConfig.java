@@ -68,6 +68,20 @@ public class PiratePatConfig {
 	public static boolean plunderEnabled() { return b("piratepat_plunderEnabled"); }
 	public static float plunderPerDisruptionPerSize() { return i("piratepat_plunderPerDisruptionPerSize"); }
 
+	public static boolean titheEnabled() { return b("piratepat_titheEnabled"); }
+	public static float titheRate() { return f("piratepat_titheRate"); }
+	public static float titheFreePortMult() { return f("piratepat_titheFreePortMult"); }
+	public static float titheNoBaseFraction() { return f("piratepat_titheNoBaseFraction"); }
+
+	public static boolean brokerEnabled() { return b("piratepat_brokerEnabled"); }
+	public static float brokerPriceMult() { return f("piratepat_brokerPriceMult"); }
+	public static int brokerMaxConcurrent() { return i("piratepat_brokerMaxConcurrent"); }
+	public static int brokerBpOffers() { return i("piratepat_brokerBpOffers"); }
+	public static float brokerBountyFraction() { return f("piratepat_brokerBountyFraction"); }
+	public static float brokerRefundFailed() { return f("piratepat_brokerRefundFailed"); }
+	public static float brokerRefundUnserved() { return f("piratepat_brokerRefundUnserved"); }
+	public static float brokerStallDays() { return i("piratepat_brokerStallDays"); }
+
 	public static float buyWeight() { return f("piratepat_buyWeight"); }
 	public static float weaponWeight() { return f("piratepat_weaponWeight"); }
 	public static float shipWeight() { return f("piratepat_shipWeight"); }
@@ -93,7 +107,9 @@ public class PiratePatConfig {
 	public static int bountyMaxFleetsPerFaction() { return i("piratepat_bountyMaxFleetsPerFaction"); }
 	public static float bountySpawnProb() { return f("piratepat_bountySpawnProb"); }
 	public static float bountyGrowthPerMonth() { return f("piratepat_bountyGrowthPerMonth"); }
+	public static float bountyDormantGrowthPerMonth() { return f("piratepat_bountyDormantGrowthPerMonth"); }
 	public static float bountyWorthItFraction() { return f("piratepat_bountyWorthItFraction"); }
+	public static float bountyMinFleetValueFraction() { return f("piratepat_bountyMinFleetValueFraction"); }
 	public static float bountyPerKillFlat() { return i("piratepat_bountyPerKillFlat"); }
 	public static float bountyPerKillFraction() { return f("piratepat_bountyPerKillFraction"); }
 	public static float bountyPayoffMult() { return f("piratepat_bountyPayoffMult"); }
