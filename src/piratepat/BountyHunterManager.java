@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 
@@ -14,10 +15,15 @@ import org.lwjgl.util.vector.Vector2f;
 import com.fs.starfarer.api.EveryFrameScript;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
+import com.fs.starfarer.api.campaign.FactionAPI;
 import com.fs.starfarer.api.campaign.FleetAssignment;
 import com.fs.starfarer.api.campaign.LocationAPI;
+import com.fs.starfarer.api.campaign.comm.CommMessageAPI.MessageClickAction;
+import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.impl.campaign.ids.Factions;
 import com.fs.starfarer.api.impl.campaign.ids.MemFlags;
+import com.fs.starfarer.api.impl.campaign.intel.BaseIntelPlugin;
+import com.fs.starfarer.api.impl.campaign.intel.MessageIntel;
 import com.fs.starfarer.api.impl.campaign.missions.FleetCreatorMission;
 import com.fs.starfarer.api.impl.campaign.missions.hub.MissionFleetAutoDespawn;
 import com.fs.starfarer.api.util.IntervalUtil;
@@ -57,7 +63,7 @@ public class BountyHunterManager implements EveryFrameScript {
 
 		monthly.advance(days);
 		if (monthly.intervalElapsed()) {
-			PiratePatData.growBounties();
+			growBounties();
 		}
 
 		checkInterval.advance(days);
@@ -68,10 +74,29 @@ public class BountyHunterManager implements EveryFrameScript {
 		CampaignFleetAPI player = Global.getSector().getPlayerFleet();
 		if (player == null || player.getContainingLocation() == null) return;
 
+		float strength = player.getEffectiveStrength();
+		float fleetValue = playerFleetValue();
+		Set<String> active = PiratePatData.activeBountyFactions();
+
 		for (Map.Entry<String, Float> entry : new LinkedHashMap<String, Float>(PiratePatData.bounties()).entrySet()) {
 			String factionId = entry.getKey();
 			float bounty = entry.getValue();
-			if (bounty < PiratePatConfig.bountyActivationMin()) continue;
+
+			// A bounty is "active" once it is past the activation floor, funds a
+			// hunter worth the player's CURRENT strength, AND the fleet it targets
+			// is worth enough to bother with (a decoy fleet freezes it). That
+			// dormant -> active transition is the ONE moment we notify, and it is
+			// what keeps the intel on the list.
+			boolean nowActive = isActiveBounty(bounty, strength, fleetValue);
+			boolean wasActive = active.contains(factionId);
+			if (nowActive && !wasActive) {
+				active.add(factionId);
+				notifyBountyActivated(factionId, bounty);
+			} else if (!nowActive && wasActive) {
+				active.remove(factionId);
+			}
+
+			if (!nowActive) continue;
 
 			int maxFleets = 1 + (int) (bounty / PiratePatConfig.bountyCreditsPerExtraFleet());
 			if (maxFleets > PiratePatConfig.bountyMaxFleetsPerFaction()) {
@@ -79,19 +104,120 @@ public class BountyHunterManager implements EveryFrameScript {
 			}
 			if (getHunters(factionId).size() >= maxFleets) continue;
 
-			// hunters weigh the job against the player's CURRENT strength: skip
-			// if the fleet this bounty can fund isn't a credible threat to the
-			// fleet they'd have to fight. Docking ships drops the threshold.
-			float worthItFrac = PiratePatConfig.bountyWorthItFraction();
-			if (worthItFrac > 0f
-					&& hunterFPForBounty(bounty) < player.getEffectiveStrength() * worthItFrac) {
-				continue;
-			}
-
 			if (random.nextFloat() > PiratePatConfig.bountySpawnProb()) continue;
 
 			spawnHunterFleet(factionId, bounty, player);
 		}
+
+		// forget factions that no longer carry a bounty at all
+		active.retainAll(PiratePatData.bounties().keySet());
+	}
+
+	/**
+	 * A bounty draws hunters only when it clears the activation floor, funds a
+	 * hunter that credibly threatens the player's current fleet (the worth-it
+	 * deterrence), AND is not frozen against a decoy fleet. Fail any bar and it
+	 * is dormant/frozen: no hunters, intel hidden.
+	 */
+	public static boolean isActiveBounty(float bounty, float playerStrength, float fleetValue) {
+		if (bounty < PiratePatConfig.bountyActivationMin()) return false;
+		if (isFrozenByFleetValue(bounty, fleetValue)) return false;
+		float worthItFrac = PiratePatConfig.bountyWorthItFraction();
+		if (worthItFrac > 0f && fundedHunterStrength(bounty) < playerStrength * worthItFrac) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Total hunter strength a bounty can MOTIVATE, in fleet points and UNCAPPED -
+	 * used only to judge whether the contract is worth taking against the
+	 * player's current fleet. The individual fleets actually dispatched are still
+	 * capped by hunterFPForBounty; this is the reward-vs-risk figure, and because
+	 * it grows without bound as the bounty festers upward, no fleet is ever
+	 * permanently exempt - a big enough price always overcomes the deterrence.
+	 * A deployment-cost-reduced whale fleet just carries a bigger price before
+	 * hunters commit.
+	 */
+	public static float fundedHunterStrength(float bounty) {
+		float perFleet = bounty / PiratePatConfig.bountyCreditsPerFP();
+		int maxFleets = 1 + (int) (bounty / PiratePatConfig.bountyCreditsPerExtraFleet());
+		if (maxFleets > PiratePatConfig.bountyMaxFleetsPerFaction()) {
+			maxFleets = PiratePatConfig.bountyMaxFleetsPerFaction();
+		}
+		return perFleet * maxFleets;
+	}
+
+	/**
+	 * The contract wants the player's FLEET destroyed, so it is worthless against
+	 * a throwaway fleet. If the player's ship value is far below the posted
+	 * bounty the contract is frozen (hidden, no growth, no hunters) rather than
+	 * letting them clear a big bounty by dying on purpose in a cheap fleet.
+	 */
+	public static boolean isFrozenByFleetValue(float bounty, float fleetValue) {
+		float frac = PiratePatConfig.bountyMinFleetValueFraction();
+		if (frac <= 0f) return false;
+		return fleetValue < bounty * frac;
+	}
+
+	protected static float playerEffectiveStrength() {
+		CampaignFleetAPI player = Global.getSector().getPlayerFleet();
+		return player == null ? 0f : player.getEffectiveStrength();
+	}
+
+	/** Total credit value of the player's ships - what the contract stands to destroy. */
+	protected static float playerFleetValue() {
+		CampaignFleetAPI player = Global.getSector().getPlayerFleet();
+		if (player == null) return 0f;
+		float total = 0f;
+		for (FleetMemberAPI m : player.getFleetData().getMembersListCopy()) {
+			total += m.getBaseValue();
+		}
+		return total;
+	}
+
+	/**
+	 * Monthly compounding: active bounties accrue interest at the normal rate,
+	 * dormant ones fester at the higher dormant rate so a bounty too small to
+	 * matter still climbs toward relevance, and frozen ones (fleet too cheap to
+	 * be worth the contract) hold still - no growth, waiting for a real prize.
+	 */
+	protected void growBounties() {
+		float activeRate = PiratePatConfig.bountyGrowthPerMonth();
+		float dormantRate = PiratePatConfig.bountyDormantGrowthPerMonth();
+		float strength = playerEffectiveStrength();
+		float fleetValue = playerFleetValue();
+		Map<String, Float> bounties = PiratePatData.bounties();
+		List<String> remove = new ArrayList<String>();
+		for (Map.Entry<String, Float> entry : bounties.entrySet()) {
+			float bounty = entry.getValue();
+			float rate;
+			if (isActiveBounty(bounty, strength, fleetValue)) rate = activeRate;
+			else if (isFrozenByFleetValue(bounty, fleetValue)) rate = 0f;
+			else rate = dormantRate;
+			if (rate == 0f) continue;
+			float val = bounty * (1f + rate);
+			if (val < 1000f) remove.add(entry.getKey());
+			else entry.setValue(val);
+		}
+		for (String k : remove) {
+			bounties.remove(k);
+			PiratePatData.activeBountyFactions().remove(k);
+		}
+	}
+
+	/** Fired once, when a faction's bounty first becomes worth hunting. */
+	protected void notifyBountyActivated(String factionId, float bounty) {
+		FactionAPI faction = Global.getSector().getFaction(factionId);
+		String name = faction != null ? Misc.ucFirst(faction.getDisplayName()) : factionId;
+		PiratePatData.addLedger(name + " quietly posts a bounty on your head", 0f);
+
+		MessageIntel msg = new MessageIntel();
+		msg.addLine("A price has been placed on your head", Misc.getNegativeHighlightColor());
+		msg.addLine(BaseIntelPlugin.BULLET + "%s bounty: %s", Misc.getTextColor(),
+				new String[] { name, Misc.getDGSCredits(bounty) }, Misc.getHighlightColor());
+		if (faction != null) msg.setIcon(faction.getCrest());
+		Global.getSector().getCampaignUI().addMessage(msg, MessageClickAction.INTEL_TAB);
 	}
 
 	protected List<CampaignFleetAPI> getHunters(String factionId) {

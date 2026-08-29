@@ -47,12 +47,16 @@ public class PersonalBountyIntel extends BaseIntelPlugin {
 	}
 
 	/**
-	 * Stay registered (so it reappears when a new bounty accrues) but drop out
-	 * of the intel list whenever nothing is owed - after decay or a payoff.
+	 * Stay registered but stay OFF the intel list while every bounty is dormant -
+	 * below the activation floor, or funding hunters too weak to bother a fleet
+	 * your size. The list only shows the wanted poster once someone is actually
+	 * willing to come collect; BountyHunterManager maintains that active set on
+	 * its ~10-day check, and reappearance rides in with the activation alert.
 	 */
 	@Override
 	public boolean isHidden() {
-		return PiratePatData.getTotalBounty() <= 0f;
+		if (PiratePatData.getTotalBounty() <= 0f) return true;
+		return PiratePatData.activeBountyFactions().isEmpty();
 	}
 
 	@Override
@@ -91,10 +95,13 @@ public class PersonalBountyIntel extends BaseIntelPlugin {
 		info.addPara("Someone has been feeding the pirate war chest through the black markets "
 				+ "of the sector's ports - and while nothing can be proven well enough for open "
 				+ "hostilities, the underworld talks. The factions concerned have quietly posted "
-				+ "personal bounties on the smuggler responsible: you.", opad);
+				+ "personal bounties on the smuggler responsible: you. The contract is simple - "
+				+ "your fleet, destroyed.", opad);
 
 		Map<String, Float> bounties = PiratePatData.bounties();
 		float min = PiratePatConfig.bountyActivationMin();
+		float strength = BountyHunterManager.playerEffectiveStrength();
+		float fleetValue = BountyHunterManager.playerFleetValue();
 
 		java.util.List<Map.Entry<String, Float>> sorted =
 				new ArrayList<Map.Entry<String, Float>>(bounties.entrySet());
@@ -111,10 +118,17 @@ public class PersonalBountyIntel extends BaseIntelPlugin {
 			for (Map.Entry<String, Float> entry : sorted) {
 				FactionAPI faction = Global.getSector().getFaction(entry.getKey());
 				String name = faction != null ? Misc.ucFirst(faction.getDisplayName()) : entry.getKey();
-				Color c = entry.getValue() >= min ? neg : gray;
-				String status = entry.getValue() >= min ? "" : " (below hunters' notice)";
+				float val = entry.getValue();
+				boolean active = BountyHunterManager.isActiveBounty(val, strength, fleetValue);
+				Color c = active ? neg : gray;
+				String status;
+				if (active) status = "";
+				else if (val < min) status = " (below hunters' notice)";
+				else if (BountyHunterManager.isFrozenByFleetValue(val, fleetValue))
+					status = " (frozen - your fleet isn't a prize worth the contract)";
+				else status = " (dormant - your fleet deters hunters)";
 				info.addPara(BULLET + name + ": %s" + status, 3f, c, h,
-						Misc.getDGSCredits(entry.getValue()));
+						Misc.getDGSCredits(val));
 			}
 
 			// pay-off buttons, one per faction
@@ -144,30 +158,46 @@ public class PersonalBountyIntel extends BaseIntelPlugin {
 			info.addPara(BULLET + "Estimated hunter fleet strength: up to ~%s fleet points each.",
 					3f, h, "" + (int) fp);
 
-			// deterred-by-strength note
-			float frac = PiratePatConfig.bountyWorthItFraction();
-			CampaignFleetAPI player = Global.getSector().getPlayerFleet();
-			if (frac > 0f && player != null) {
-				float largest = 0f;
-				for (Float b : bounties.values()) largest = Math.max(largest, b);
-				if (BountyHunterManager.hunterFPForBounty(largest)
-						< player.getEffectiveStrength() * frac) {
-					info.addPara("Your current fleet is formidable enough that no hunter finds "
-							+ "the contract worth taking. Sail with a weaker fleet and that "
-							+ "changes.", opad, Misc.getPositiveHighlightColor(),
-							"no hunter finds the contract worth taking");
+			float largest = 0f;
+			for (Float b : bounties.values()) largest = Math.max(largest, b);
+
+			// frozen-vs-cheap-fleet note (takes priority - it also stops growth)
+			if (BountyHunterManager.isFrozenByFleetValue(largest, fleetValue)) {
+				info.addPara("Your fleet is worth too little to be a prize worth this contract - "
+						+ "no one will burn a hunt on a decoy, and the bounty is frozen where it "
+						+ "stands until you sail something worth destroying.", opad,
+						Misc.getPositiveHighlightColor(), "frozen");
+			} else {
+				// deterred-by-strength note
+				float frac = PiratePatConfig.bountyWorthItFraction();
+				CampaignFleetAPI player = Global.getSector().getPlayerFleet();
+				if (frac > 0f && player != null
+						&& BountyHunterManager.fundedHunterStrength(largest)
+								< player.getEffectiveStrength() * frac) {
+					info.addPara("Your current fleet is formidable enough that this price isn't "
+							+ "yet worth the risk to any hunter. Sail with a weaker fleet, or let "
+							+ "the bounty keep climbing, and that changes - a big enough price "
+							+ "always finds takers.", opad, Misc.getPositiveHighlightColor(),
+							"isn't yet worth the risk");
 				}
 			}
 		}
 
 		float growth = PiratePatConfig.bountyGrowthPerMonth();
 		if (growth > 0) {
-			info.addPara("Each standing bounty grows by about %s per month - interest on your "
+			info.addPara("Each active bounty grows by about %s per month - interest on your "
 					+ "notoriety, compounding until you pay it off.", opad, neg,
 					(int) Math.round(growth * 100f) + "%");
 		} else if (growth < 0) {
-			info.addPara("Bounties fade by about %s per month if you stop adding to them.", opad, h,
+			info.addPara("Active bounties fade by about %s per month if you stop adding to them.", opad, h,
 					(int) Math.round(-growth * 100f) + "%");
+		}
+		float dormantGrowth = PiratePatConfig.bountyDormantGrowthPerMonth();
+		if (dormantGrowth > 0) {
+			info.addPara("A dormant bounty - one too small to draw hunters yet - festers faster, "
+					+ "climbing about %s per month until it becomes a threat worth acting on. "
+					+ "Ignoring a small price on your head only lets it ripen.", opad, neg,
+					(int) Math.round(dormantGrowth * 100f) + "%");
 		}
 		info.addPara("Destroying hunter fleets raises the sponsor's bounty - notoriety "
 				+ "compounds.", opad, neg, "raises");
