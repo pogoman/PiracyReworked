@@ -17,13 +17,19 @@ import com.fs.starfarer.api.util.Misc;
  * of that flow, sector-wide: pirate income that scales with the size of the
  * economy instead of with the player's personal black market habit.
  *
- * Export volumes are counted once at the source (every unit exported is a
- * unit imported somewhere), valued at commodity base price. Free ports fence
- * at a multiplier - they are where everyone else's contraband becomes legal
- * cargo. Player-owned markets are tracked separately so the intel screen can
- * show the player exactly how much of the underworld's baseline their own
- * colonies provide; it is chest income only and never counts as personal
- * patronage.
+ * Both ends of every illegal flow pay, deliberately: exports where the
+ * market's own supply of a commodity is illegal-source, and imports in
+ * proportion to how much of that commodity's global export share belongs to
+ * illegal sources - the smuggler pays protection at the origin and the fence
+ * takes a cut at the destination. This is what makes a big consumer colony
+ * matter: its population's drug and organ demand is met by smuggling INTO
+ * it, and that throughput is underworld revenue whether or not the colony
+ * produces anything illegal itself. Values are commodity base price. Free
+ * ports fence at a multiplier - they are where everyone else's contraband
+ * becomes legal cargo. Player-owned markets are tracked separately so the
+ * intel screen can show the player exactly how much of the underworld's
+ * baseline their own colonies provide; it is chest income only and never
+ * counts as personal patronage.
  *
  * With zero operating bases only a fraction flows - with no organization to
  * collect it, most of the take stays in local hands. Eradication buys years
@@ -51,12 +57,35 @@ public class UnderworldTithe {
 			float illegalValue = 0f;
 			for (CommodityOnMarketAPI com : market.getAllCommodities()) {
 				if (com.isNonEcon()) continue;
-				int exported = Math.min(com.getAvailable(), com.getMaxSupply());
-				if (exported <= 0) continue;
 				if (com.getCommodityMarketData() == null) continue;
-				MarketShareDataAPI share = com.getCommodityMarketData().getMarketShareData(market);
-				if (share == null || !share.isSourceIsIllegal()) continue;
-				illegalValue += exported * com.getCommodity().getBasePrice();
+				float basePrice = com.getCommodity().getBasePrice();
+
+				// export side: this market's own supply is illegal-source
+				int exported = Math.min(com.getAvailable(), com.getMaxSupply());
+				if (exported > 0) {
+					MarketShareDataAPI share = com.getCommodityMarketData().getMarketShareData(market);
+					if (share != null && share.isSourceIsIllegal()) {
+						illegalValue += exported * basePrice;
+					}
+				}
+
+				// import side: demand met here, attributed to illegal sources
+				// by their share of the commodity's global exports - the
+				// smuggled-into-this-market portion of consumption
+				int met = Math.min(com.getAvailable(), com.getMaxDemand());
+				if (met > 0) {
+					float illegalShare = 0f;
+					float totalShare = 0f;
+					for (MarketShareDataAPI producer : com.getCommodityMarketData().getSortedProducers()) {
+						float s = producer.getExportMarketShare();
+						if (s <= 0) continue;
+						totalShare += s;
+						if (producer.isSourceIsIllegal()) illegalShare += s;
+					}
+					if (totalShare > 0 && illegalShare > 0) {
+						illegalValue += met * basePrice * (illegalShare / totalShare);
+					}
+				}
 			}
 			if (illegalValue <= 0) continue;
 

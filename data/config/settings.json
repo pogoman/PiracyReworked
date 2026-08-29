@@ -76,8 +76,10 @@
 	# steadily dilutes your share of underworld income, helping restore a
 	# pierced Piracy Respite when you lay off.
 	"piratepat_titheEnabled": true,
-	# monthly rate applied to (illegal export volume x commodity base price)
-	# summed per market
+	# monthly rate applied to each market's illegal trade value (base
+	# prices): illegal-source exports PLUS imports attributed to illegal
+	# sources by global export share - both ends of a smuggling run pay,
+	# so big consumer colonies (drug/organ demand) count too
 	"piratepat_titheRate": 0.25,
 	# free ports fence everyone's contraband, and pay accordingly. Applies to
 	# ALL free ports - your own colonies' underworld shows as its own intel
