@@ -1,6 +1,9 @@
 {
 	# Piracy Reworked - fallback values when LunaLib is not enabled
 
+	# lets rules.csv resolve this mod's rule commands (PiratepatBrokerCMD)
+	"ruleCommandPackages":["piratepat"],
+
 	# Master switch. Off = the war chest economy freezes (bases keep running).
 	"piratepat_enabled": true,
 

@@ -1,4 +1,4 @@
 id,trigger,conditions,script,text,options,notes
 piratepatBrokerOption,PopulateOptions,"$isPerson
-piratepat.PiratepatBrokerCMD isBrokerContact",,,6:piratepatBroker:Ask about having hard-to-find hardware sourced,broker option on underworld contacts
-piratepatBrokerOpen,DialogOptionSelected,$option == piratepatBroker,piratepat.PiratepatBrokerCMD open,,,opens the broker conversation
+PiratepatBrokerCMD isBrokerContact",,,6:piratepatBroker:Ask about having hard-to-find hardware sourced,broker option on underworld contacts
+piratepatBrokerOpen,DialogOptionSelected,$option == piratepatBroker,PiratepatBrokerCMD open,,,opens the broker conversation
