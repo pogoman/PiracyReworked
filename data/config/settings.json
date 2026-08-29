@@ -102,8 +102,21 @@
 	"piratepat_brokerPriceMult": 2.5,
 	# open commissions allowed at once
 	"piratepat_brokerMaxConcurrent": 2,
-	# rotating blueprint offers per market per month
-	"piratepat_brokerBpOffers": 3,
+	# Trust gate: minimum rep with the CONTACT (not the faction) before the
+	# sourcing service is offered - the same personal-rep gate vanilla's
+	# contact missions use. One of: NEUTRAL, FAVORABLE, WELCOMING, FRIENDLY,
+	# COOPERATIVE (falls back to FAVORABLE if unparseable).
+	"piratepat_brokerMinRep": "FAVORABLE",
+	# Reach gate: what a contact's network can source scales with the
+	# contact's IMPORTANCE (the same stat vanilla uses to gate and scale
+	# contact missions). Final commission prices are capped at this base
+	# figure doubled per importance level - Very Low 150k, Low 300k,
+	# Medium 600k, High 1.2M - and a Very High contact can get anything.
+	"piratepat_brokerImportanceCapBase": 150000,
+	# Ceiling on rotating blueprint offers per market per month; the actual
+	# number offered is 1 + importance level (Very Low 1 ... Very High 5),
+	# capped by this.
+	"piratepat_brokerBpOffers": 5,
 	# fraction of the deposit added to the raided faction's personal bounty
 	"piratepat_brokerBountyFraction": 0.75,
 	# refund fraction when the raid is repelled (the network tried and bled)

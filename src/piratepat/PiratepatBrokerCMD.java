@@ -37,6 +37,12 @@ public class PiratepatBrokerCMD extends BaseCommandPlugin {
 			if (!person.hasTag(Tags.CONTACT_UNDERWORLD)) return false;
 			// same availability gate as the contact's job list
 			if (BaseMissionHub.get(person) == null) return false;
+			// and the same personal-rep gate vanilla missions use: this is a
+			// trust service, not something offered to strangers
+			if (person.getRelToPlayer() == null
+					|| !person.getRelToPlayer().isAtWorst(PiratePatConfig.brokerMinRep())) {
+				return false;
+			}
 			return true;
 		}
 

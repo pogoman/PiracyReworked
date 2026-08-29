@@ -27,7 +27,9 @@ brokerHeader,Broker Header,Header,The Broker,"Underworld contacts offer, alongsi
 piratepat_brokerEnabled,Broker Enabled,Boolean,true,"Underworld-tagged contacts offer the sourcing service alongside their regular jobs - operating bases or not.",,
 piratepat_brokerPriceMult,Commission Price Multiplier,Double,2.5,"Commission price as a multiple of the item's base value.",1.0,10.0
 piratepat_brokerMaxConcurrent,Max Open Commissions,Int,2,"Open commissions allowed at once.",1,10
-piratepat_brokerBpOffers,Blueprint Offers,Int,3,"Rotating blueprint offers per market per month.",1,10
+piratepat_brokerMinRep,Minimum Contact Trust,String,FAVORABLE,"Minimum rep with the CONTACT (not the faction) before the sourcing service is offered - same personal-rep gate as vanilla contact missions. One of: NEUTRAL FAVORABLE WELCOMING FRIENDLY COOPERATIVE.",,
+piratepat_brokerImportanceCapBase,Importance Reach Cap Base,Int,150000,"What a contact can source scales with their importance: final commission prices are capped at this figure doubled per importance level (Very Low 150k / Low 300k / Medium 600k / High 1.2M); a Very High contact can get anything.",50000,1000000
+piratepat_brokerBpOffers,Blueprint Offers Ceiling,Int,5,"Ceiling on rotating blueprint offers per market per month; the actual number offered is 1 + the contact's importance level (Very Low 1 ... Very High 5) capped by this.",1,10
 piratepat_brokerBountyFraction,Bounty Fraction,Double,0.75,"Fraction of the deposit added to the raided faction's personal bounty on you - a raid is loud, and the underworld talks.",0.0,2.0
 piratepat_brokerRefundFailed,Refund When Repelled,Double,0.5,"Deposit fraction refunded when the commissioned raid is repelled.",0.0,1.0
 piratepat_brokerRefundUnserved,Refund When Unserved,Double,0.9,"Deposit fraction refunded when no raid could be mounted at all.",0.0,1.0

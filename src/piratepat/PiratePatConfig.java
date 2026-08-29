@@ -43,6 +43,14 @@ public class PiratePatConfig {
 		return Global.getSettings().getBoolean(key);
 	}
 
+	private static String s(String key) {
+		if (lunaAvailable()) {
+			String v = LunaConfigBridge.getString(key);
+			if (v != null && !v.trim().isEmpty()) return v;
+		}
+		return Global.getSettings().getString(key);
+	}
+
 	public static boolean enabled() { return b("piratepat_enabled"); }
 
 	public static float baseCost() { return i("piratepat_baseCost"); }
@@ -74,6 +82,22 @@ public class PiratePatConfig {
 	public static float titheNoBaseFraction() { return f("piratepat_titheNoBaseFraction"); }
 
 	public static boolean brokerEnabled() { return b("piratepat_brokerEnabled"); }
+
+	/**
+	 * Minimum rep with the CONTACT before the sourcing service is offered -
+	 * same personal-rep gate vanilla's person_missions.csv uses (min rep
+	 * column). Falls back to FAVORABLE on an unparseable value.
+	 */
+	public static com.fs.starfarer.api.campaign.RepLevel brokerMinRep() {
+		try {
+			return com.fs.starfarer.api.campaign.RepLevel.valueOf(
+					s("piratepat_brokerMinRep").trim().toUpperCase());
+		} catch (Throwable t) {
+			return com.fs.starfarer.api.campaign.RepLevel.FAVORABLE;
+		}
+	}
+
+	public static float brokerImportanceCapBase() { return i("piratepat_brokerImportanceCapBase"); }
 	public static float brokerPriceMult() { return f("piratepat_brokerPriceMult"); }
 	public static int brokerMaxConcurrent() { return i("piratepat_brokerMaxConcurrent"); }
 	public static int brokerBpOffers() { return i("piratepat_brokerBpOffers"); }

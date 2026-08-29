@@ -20,4 +20,8 @@ class LunaConfigBridge {
 	static Boolean getBoolean(String key) {
 		return LunaSettings.getBoolean(PiratePatConfig.MOD_ID, key);
 	}
+
+	static String getString(String key) {
+		return LunaSettings.getString(PiratePatConfig.MOD_ID, key);
+	}
 }

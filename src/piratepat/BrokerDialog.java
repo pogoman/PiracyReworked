@@ -13,6 +13,7 @@ import com.fs.starfarer.api.campaign.CargoStackAPI;
 import com.fs.starfarer.api.campaign.InteractionDialogAPI;
 import com.fs.starfarer.api.campaign.InteractionDialogPlugin;
 import com.fs.starfarer.api.campaign.OptionPanelAPI;
+import com.fs.starfarer.api.campaign.PersonImportance;
 import com.fs.starfarer.api.campaign.SpecialItemData;
 import com.fs.starfarer.api.campaign.SpecialItemSpecAPI;
 import com.fs.starfarer.api.campaign.TextPanelAPI;
@@ -75,6 +76,24 @@ public class BrokerDialog implements InteractionDialogPlugin {
 	protected TextPanelAPI text;
 	protected OptionPanelAPI options;
 	protected CatalogEntry selected = null;
+	protected int beyondReach = 0; // catalog entries filtered by the contact's importance
+
+	/**
+	 * What this contact's network can reach, priced in final commission
+	 * credits: the cap doubles with each importance level, and a VERY_HIGH
+	 * contact can get anything. Mirrors how vanilla scales contact mission
+	 * quality and gates missions by PersonImportance.
+	 */
+	public static int priceCapFor(PersonImportance importance) {
+		if (importance == null) importance = PersonImportance.VERY_LOW;
+		if (importance == PersonImportance.VERY_HIGH) return Integer.MAX_VALUE;
+		return (int) (PiratePatConfig.brokerImportanceCapBase() * (1 << importance.ordinal()));
+	}
+
+	protected PersonImportance importance() {
+		if (person != null && person.getImportance() != null) return person.getImportance();
+		return PersonImportance.VERY_LOW;
+	}
 
 	/** Swap the broker conversation in over the current (rules) dialog. */
 	public static void begin(InteractionDialogAPI dialog, Map<String, MemoryAPI> memoryMap,
@@ -172,6 +191,11 @@ public class BrokerDialog implements InteractionDialogPlugin {
 			text.addPara("\"Nothing on the menu for you this month. Check back - inventory "
 					+ "moves.\"");
 		}
+		if (beyondReach > 0) {
+			text.addPara("Some of what the network handles is beyond this contact's reach - "
+					+ "a better-placed contact could source more expensive goods.",
+					Misc.getGrayColor(), "beyond this contact's reach");
+		}
 		float credits = Global.getSector().getPlayerFleet().getCargo().getCredits().get();
 		for (CatalogEntry entry : catalog) {
 			options.addOption(entry.name + " - " + Misc.getDGSCredits(entry.price), entry);
@@ -258,11 +282,17 @@ public class BrokerDialog implements InteractionDialogPlugin {
 
 	protected List<CatalogEntry> buildEquipmentCatalog() {
 		List<CatalogEntry> catalog = new ArrayList<CatalogEntry>();
+		int cap = priceCapFor(importance());
+		beyondReach = 0;
 		for (SpecialItemSpecAPI spec : Global.getSettings().getAllSpecialItemSpecs()) {
 			if (!spec.hasTag(Items.TAG_COLONY_ITEM)) continue;
 			int price = (int) (priceForSpecial(spec.getId(), null)
 					* PiratePatConfig.brokerPriceMult());
 			if (price <= 0) continue;
+			if (price > cap) {
+				beyondReach++;
+				continue;
+			}
 			catalog.add(new CatalogEntry(spec.getId(), null, spec.getName(), price));
 		}
 		Collections.sort(catalog, new Comparator<CatalogEntry>() {
@@ -284,6 +314,8 @@ public class BrokerDialog implements InteractionDialogPlugin {
 		Random seeded = new Random(market.getId().hashCode() * 31L + months);
 		WeightedRandomPicker<CatalogEntry> picker = new WeightedRandomPicker<CatalogEntry>(seeded);
 
+		int cap = priceCapFor(importance());
+		beyondReach = 0;
 		for (ShipHullSpecAPI spec : Global.getSettings().getAllShipHullSpecs()) {
 			if (!spec.hasTag(Items.TAG_RARE_BP)) continue;
 			// fighter hulls are LPCs, not ship blueprints
@@ -292,6 +324,10 @@ public class BrokerDialog implements InteractionDialogPlugin {
 			int price = (int) (priceForSpecial(CommissionIntel.SHIP_BP, spec.getHullId())
 					* PiratePatConfig.brokerPriceMult());
 			if (price <= 0) continue;
+			if (price > cap) {
+				beyondReach++;
+				continue;
+			}
 			picker.add(new CatalogEntry(CommissionIntel.SHIP_BP, spec.getHullId(),
 					spec.getHullName() + " blueprint", price), 1f);
 		}
@@ -301,11 +337,17 @@ public class BrokerDialog implements InteractionDialogPlugin {
 			int price = (int) (priceForSpecial(CommissionIntel.WEAPON_BP, spec.getWeaponId())
 					* PiratePatConfig.brokerPriceMult());
 			if (price <= 0) continue;
+			if (price > cap) {
+				beyondReach++;
+				continue;
+			}
 			picker.add(new CatalogEntry(CommissionIntel.WEAPON_BP, spec.getWeaponId(),
 					spec.getWeaponName() + " blueprint", price), 1f);
 		}
 
-		int count = PiratePatConfig.brokerBpOffers();
+		// how many archives the network can reach at once scales with how
+		// well-placed the contact is; the config value is the ceiling
+		int count = Math.min(1 + importance().ordinal(), PiratePatConfig.brokerBpOffers());
 		for (int i = 0; i < count && !picker.isEmpty(); i++) {
 			offers.add(picker.pickAndRemove());
 		}
