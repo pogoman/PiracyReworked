@@ -8,6 +8,8 @@ import com.fs.starfarer.api.BaseModPlugin;
 import com.fs.starfarer.api.EveryFrameScript;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.SectorAPI;
+import com.fs.starfarer.api.impl.campaign.intel.bar.PortsideBarData;
+import com.fs.starfarer.api.impl.campaign.intel.bar.PortsideBarEvent;
 import com.fs.starfarer.api.impl.campaign.intel.bar.events.BarEventManager;
 import com.fs.starfarer.api.impl.campaign.intel.bases.PirateBaseManager;
 
@@ -67,12 +69,20 @@ public class PiratePatModPlugin extends BaseModPlugin {
 		sector.getListenerManager().addListener(new BlackMarketListener(), true);
 		sector.getListenerManager().addListener(new PirateHuntListener(), true);
 
-		// the fixer: broker commissions at bars on black-market worlds. The
-		// bar event manager serializes its creators, so guard against dupes.
+		// the broker lives on underworld contacts now (rules.csv +
+		// PiratepatBrokerCMD). Purge the old bar event machinery from saves
+		// that serialized it.
 		BarEventManager bars = BarEventManager.getInstance();
-		if (bars != null && !bars.hasEventCreator(BrokerBarEventCreator.class)) {
-			bars.addEventCreator(new BrokerBarEventCreator());
-			log.info("Registered BrokerBarEventCreator");
+		if (bars != null && bars.hasEventCreator(BrokerBarEventCreator.class)) {
+			for (BarEventManager.GenericBarEventCreator c
+					: new ArrayList<BarEventManager.GenericBarEventCreator>(bars.getCreators())) {
+				if (c instanceof BrokerBarEventCreator) bars.getCreators().remove(c);
+			}
+			log.info("Removed deprecated BrokerBarEventCreator");
+		}
+		for (PortsideBarEvent e : new ArrayList<PortsideBarEvent>(
+				PortsideBarData.getInstance().getEvents())) {
+			if (e instanceof BrokerBarEvent) PortsideBarData.getInstance().removeEvent(e);
 		}
 
 		WarChestIntel.ensureAdded();

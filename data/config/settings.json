@@ -87,12 +87,12 @@
 	"piratepat_titheNoBaseFraction": 0.25,
 
 	# --- The broker ---
-	# An underworld fixer appears in bars at markets with a black market,
-	# taking commissions for goods no legal market sells: colony-grade
-	# industrial equipment and rare blueprints. Deposit paid in full up
-	# front, straight into the war chest - and fulfillment is a REAL raid
-	# launched by an operating war-chest base against whichever system holds
-	# the goods. The broker deals even with zero bases: the deposit then
+	# Every underworld-tagged CONTACT offers, alongside their job list, to
+	# have things "sourced": commissions for goods no legal market sells -
+	# colony-grade industrial equipment and rare blueprints. Deposit paid in
+	# full up front, straight into the war chest - and fulfillment is a REAL
+	# raid launched by an operating war-chest base against whichever system
+	# holds the goods. The broker deals even with zero bases: the deposit then
 	# finances the network's reconstruction, and the order waits until the
 	# underworld can sail again. Deposits count as personal contribution at
 	# full weight, and the raided faction's personal bounty on you rises by

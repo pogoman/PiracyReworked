@@ -126,7 +126,7 @@ public class CommissionIntel extends BaseIntelPlugin {
 			// could sail but isn't taking the job. With zero bases the order
 			// simply waits - the deposit sits in the war chest, quite
 			// literally financing the reconstruction that will fulfill it.
-			if (BrokerBarEvent.countCommissionCapableBases() > 0) {
+			if (BrokerDialog.countCommissionCapableBases() > 0) {
 				stallDays += days;
 				if (stallDays > PiratePatConfig.brokerStallDays()) {
 					refund(PiratePatConfig.brokerRefundUnserved(),
@@ -363,7 +363,7 @@ public class CommissionIntel extends BaseIntelPlugin {
 
 		switch (state) {
 		case SOURCING:
-			if (BrokerBarEvent.countCommissionCapableBases() <= 0) {
+			if (BrokerDialog.countCommissionCapableBases() <= 0) {
 				info.addPara("The network has no operating bases to mount the acquisition - "
 						+ "your deposit is financing its reconstruction. The order will wait "
 						+ "until the underworld can sail again.", opad,
