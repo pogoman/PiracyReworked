@@ -161,6 +161,23 @@ public class PiratePatData {
 	public static float getLifetimeCommissions() { return getF(KEY_LT_COMMISSIONS); }
 
 	/**
+	 * Credits the player handed to underworld figures through vanilla
+	 * contact jobs (custom production markups, dubious ship sales): chest
+	 * income and full-weight personal contribution, same as a black market
+	 * buy. No bounty accrual - the payment is to the pirates themselves,
+	 * and they don't bounty their patron.
+	 */
+	public static void addUnderworldSpend(float amount, String ledgerText) {
+		if (amount <= 0) return;
+		setChest(getChest() + amount);
+		putF(KEY_LT_PLAYER, getF(KEY_LT_PLAYER) + amount);
+		addLedger(ledgerText, amount);
+		if (PiratePatConfig.debugLogging()) {
+			log.info("Underworld spend: " + (int) amount + " (" + ledgerText + ")");
+		}
+	}
+
+	/**
 	 * Plunder from pirate-disrupted shipping. Chest income only - never
 	 * touches the player's contribution figure. Accumulates a pending total
 	 * that {@link #flushPlunderLedger} periodically summarizes, to avoid
