@@ -1,17 +1,19 @@
 # Piracy Reworked
 
 A standalone mod for Starsector 0.98a. The black market is pirate
-infrastructure - and every credit you spend there is revenue for the
-underworld. In vanilla, trading with the transponder off has literally zero
-consequences; this mod doesn't punish you for smuggling, it makes the
-pirates *spend your money*.
+infrastructure - and every credit that moves through the underworld is revenue
+for it. In vanilla, trading with the transponder off has literally zero
+consequences, and pirates fade into irrelevance the moment you stop needing
+the black market; this mod doesn't punish you for smuggling, it makes the
+pirates *spend your money* - and gives a rich late-game captain reasons to
+keep dealing with them.
 
-## How it works
+## The war chest
 
-**The war chest.** Every black market transaction - buys and sells, transponder
-on or off (the authorities may not see you, but the pirates are the
-counterparty) - feeds a sector-wide pirate war chest. Sales are valued at
-actual demand-adjusted credits and weighted by usefulness to a war effort:
+Every black market transaction - buys and sells, transponder on or off (the
+authorities may not see you, but the pirates are the counterparty) - feeds a
+sector-wide pirate war chest. Sales are valued at actual demand-adjusted
+credits and weighted by usefulness to a war effort:
 
 - Weapons and fighter LPCs: x3
 - Ships: x2
@@ -20,9 +22,7 @@ actual demand-adjusted credits and weighted by usefulness to a war effort:
 - Blueprints: flat bonus on top of the vanilla behavior (pirates learn them)
 
 Wash-trading contributes nothing: opposing buys/sells of the same goods at the
-same submarket are netted against each other. Dumping colony stockpiles
-self-limits the same way it always did - crashed sell prices mean crashed
-contributions.
+same submarket are netted against each other.
 
 **A closed-loop economy.** Operating bases earn passive income (tuned to
 sustain their vanilla raid cadence, no more). Launching a raid *costs* the
@@ -32,70 +32,135 @@ raid pays spoils back with interest; a repelled raid is a pure loss.
 **Bases are priced by tier** (tier 1 ~94k up to tier 5 ~614k at defaults),
 and the pirates decide what to buy by circumstance: with their footing gone
 they rebuild it - the best tier affordable while reserving enough for another
-starter, so a poor underworld gets two wrecks earning while a rich one
-recovers with strongholds. Established, they save toward a base one tier
-above their current best - no cheap filler. There's no artificial pacing
-beyond affordability: a flush chest chains builds every couple of weeks, up
-to a cap far above vanilla's 3.
+starter; established, they save toward a base one tier above their current
+best. A flush chest chains builds every couple of weeks, up to a cap far
+above vanilla's 3.
 
 **The strategic grammar:**
 - *Smuggle* and the underworld grows - left unchecked, it snowballs.
 - *Repel raids* and it stagnates at break-even, unable to expand.
 - *Hunt bases* and it shrinks: each kill destroys the pirates' investment and
-  their income. Kill them all while the chest is low and piracy goes dormant -
-  and the only thing that can revive it is *your* black market money.
+  their income, and slows the tithe to a trickle.
 
-**Fading wariness (respite piercing).** Piracy Respite - vanilla's permanent
-reward for defeating the pirate colony crisis - says pirates are *wary* of
-attacking you. Wariness fades when the war chest overflows with your own
-money: once your lifetime contribution and your share of the underworld's
-income cross the configured thresholds (500k / 25% by default), chest-funded
-bases resume preying on your colonies - the vanilla pirate activity condition
-(accessibility/stability drain, ambient fleets), never raids. Your share
-dilutes as the pirate economy earns its own money, so laying off the black
-market eventually restores the respite. Adopted vanilla bases always honor
-respite; only bases the chest purchased are this bold.
+## The underworld tithe
 
-**A price on your head.** Each faction whose markets you smuggle through
-tracks the value you fed the pirates there and posts a *personal* bounty on
-your head equal to it - no faction rep consequences, because nothing can be
-proven well enough for open hostilities. But only to the extent their port
-authority actually *suspects* you: bounty accrual scales with the market's
-vanilla smuggling suspicion level (the black market tooltip's readout), from
-nothing below "minimal" up to full value at "high". Transponder-off trading
-generates no suspicion - a careful smuggler funds the pirates without ever
-making a wanted list; a brazen one gets hunted. Once a faction's bounty crosses the
-activation threshold (50k default), independent bounty hunter fleets start
-ambushing you, with strength scaled to the bounty (1 FP per 1,000 credits,
-capped at 200 FP) - and past the cap, the bounty funds multiple concurrent
-hunter fleets, per faction. Fighting hunters carries no rep impact either
-way. Standing bounties compound upward (2%/month default) - interest on your
-notoriety - until you pay them off (a negative rate decays instead).
-Destroying a hunter fleet *raises* the sponsor's bounty (+15k plus 10% of the
-standing figure) - notoriety compounds. Or buy your way off a faction's list
-from the intel screen: clearing a bounty costs a 25% premium over the figure,
-and nothing stops you landing right back on the list.
+The underworld also collects a monthly cut of the *sector's* illegal trade -
+the same commodity flows vanilla routes as smuggling fleets, counted at both
+ends of every run (the smuggler pays protection at the origin, the fence
+takes a cut at the destination). This is income that scales with the size of
+the economy instead of your personal habits, so pirates stay financed late
+game even if you never fence another crate. It is sector income, never your
+contribution - it steadily *dilutes* your share of the underworld's books.
 
-**Scaling defenses.** Vanilla base stations get restored as base tier rises,
-but their defenders never grow past 2 light + 1 medium patrol. Here, tier 3+
-bases field additional medium/heavy patrols and bigger fleets - a tier 5 base
-is a fortress with a real garrison.
+**Your colonies are clients whether you like it or not.** Your markets'
+share of the tithe is shown as its own intel line - a big colony's drug and
+organ demand is met by smuggling into it. Free ports (anyone's, yours
+included) fence at a multiplier: a free port is where everyone else's
+contraband becomes legal cargo, so Free Port finally has an underworld price
+tag.
 
-**Kept vanilla:** raid strength/frequency per base, base tier progression,
-station restoration, pirate activity penalties, the 6-18 month respawn freeze
-after a base kill, the first-year raid grace period. Removed: vanilla's rule
-that every destroyed base makes future bases spawn stronger.
+With zero operating bases only a configurable trickle flows - eradication
+buys years of quiet, but piracy follows interstellar civilization, and the
+trickle eventually re-founds a base.
 
-**The intel screen** ("Pirate War Chest") is a balance sheet: chest, income,
-operating bases, savings toward the next base, the recent ledger - and exactly
-how much of the pirate war economy *you* bankrolled.
+## The broker
+
+Underworld-tagged **contacts** offer, alongside their regular job list, to
+have things *sourced*: goods no legal market sells.
+
+- **Industrial equipment - real theft.** The menu lists colony items
+  actually installed at NPC colonies, scanned live from the economy, each
+  entry naming its source. The price carries a danger premium scaled to the
+  source colony's real defenses, and a source the network's best base can't
+  crack shows greyed out - feed the war chest and the menu opens up. On
+  success the item is *removed from the victim colony's industry*: theft
+  with permanent consequences, not manufacture.
+- **Blueprints.** A small rotating monthly menu of rare blueprints
+  "liberated" from faction archives - copies, and of course the pirates keep
+  one for themselves.
+
+Terms: full deposit up front, straight into the war chest (it counts as your
+personal contribution at full weight). Fulfillment is a **real raid** by an
+operating war-chest base against the system holding the goods - resolved by
+the actual raid sim against the target's actual defenses. Repelled raid:
+half back. The broker deals even when the underworld has no bases - the
+deposit then quite literally finances the reconstruction that will fulfill
+it. Delivery lands in storage at the market where you ordered.
+
+Access is gated the way vanilla gates contact missions: the option appears
+at **Favorable** rep with the contact, and what their network can reach
+scales with the contact's **importance** - the crown jewels (pristine
+nanoforge, synchrotron) need a well-placed contact.
+
+**Vanilla underworld jobs count too.** Money handed to underworld figures
+through vanilla contact missions - custom production markups, hand-me-down
+freighters - feeds the chest and your contribution the same way.
+
+## Fading wariness (respite piercing)
+
+Piracy Respite - vanilla's permanent reward for defeating the pirate colony
+crisis - says pirates are *wary* of attacking you. Wariness fades when the
+war chest overflows with your own money: once your lifetime contribution and
+your share of the underworld's income cross the configured thresholds
+(500k / 25% by default), chest-funded bases resume preying on your colonies -
+the vanilla pirate activity condition (accessibility/stability drain,
+ambient fleets), never raids. Your share dilutes as the underworld earns its
+own money (tithe included), so laying off eventually restores the respite.
+Hunting pirates also offsets your ledger: destroyed bases and fleets reduce
+your lifetime contribution.
+
+## A price on your head
+
+Each faction whose markets you smuggle through tracks the value you fed the
+pirates there and posts a *personal* bounty - no faction rep consequences,
+because nothing can be proven well enough for open hostilities. Accrual is
+gated on the market's vanilla smuggling suspicion level: transponder-off
+trading generates none; brazen trading gets you posted. Commissioning a
+broker raid adds a cut of the deposit to the victim's ledger - a raid is
+loud.
+
+The ledgers are per faction, but the hunters are freelancers who collect
+from every poster at once - everything on their side works off the
+**combined** price:
+
+- The pool activates once it clears the floor (50k default) *and* funds
+  hunters worth taking on your current fleet - a formidable fleet deters
+  hunters, but the deterrence is uncapped in reverse: a big enough price
+  always finds takers.
+- While too small to draw hunters, every ledger *festers* at a higher rate
+  (10%/month default) - ignoring a small price only lets it ripen. Active
+  bounties compound at 2%/month.
+- A throwaway decoy fleet *freezes* the bounty instead - the contract is
+  your fleet, destroyed, and nobody burns a hunt on a worthless prize.
+- Hunter fleets scale with the pool (1 FP per 1,000 credits, capped 200 FP
+  per fleet, up to 3 concurrent), and destroying one raises *every*
+  poster's bounty. Fighting hunters carries no rep impact either way.
+- Buy your way off a faction's list from the intel screen at a 25% premium.
+
+## Everything else
+
+- **Scaling defenses**: tier 3+ bases field additional medium/heavy patrols
+  and bigger fleets, plus a tier-scaled garrison stationed on the base - a
+  tier 5 base is a fortress.
+- **Machine factions excluded**: the Threat, Remnants, Omega and friends
+  neither pay the tithe, nor get raided for commissions, nor post bounties.
+- **Kept vanilla**: raid strength/frequency per base, tier progression,
+  station restoration, the 6-18 month respawn freeze after a base kill, the
+  first-year raid grace. Removed: vanilla's rule that every destroyed base
+  makes future bases spawn stronger.
+- **The intel screen** ("Pirate War Chest") is a balance sheet: chest,
+  income streams (including the tithe and your colonies' share), operating
+  bases, savings toward the next base, the recent ledger - and exactly how
+  much of the pirate war economy *you* bankrolled.
 
 ## Compatibility
 
 - Save-compatible to add mid-campaign: existing raiding bases are adopted
   as-is; the chest seeds accounting for them.
-- Bases from the colony-crisis system (player-related bases) are untouched, as
-  are Hostile Activity, Kanta's Protection, and Piracy Respite.
+- Bases from the colony-crisis system (player-related bases) are untouched,
+  as are Hostile Activity, Kanta's Protection, and Piracy Respite.
+- Overrides the `cpc`/`hmdf` rows of `person_missions.csv` with subclasses
+  (behavior unchanged, payments credited) - flag if another mod edits those.
 - Configurable via LunaLib (optional); bundled settings.json is the fallback.
 
 ## Building
