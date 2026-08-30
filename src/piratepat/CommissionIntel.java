@@ -205,6 +205,7 @@ public class CommissionIntel extends BaseIntelPlugin {
 		MarketAPI biggest = null;
 		for (MarketAPI curr : Misc.getMarketsInLocation(target)) {
 			if (curr.isHidden()) continue;
+			if (UnderworldTithe.isOutsideUnderworldEconomy(curr.getFaction())) continue;
 			if (!curr.getFaction().isHostileTo(base.getFactionForUIColors())) continue;
 			if (biggest == null || curr.getSize() > biggest.getSize()) biggest = curr;
 		}
@@ -241,6 +242,9 @@ public class CommissionIntel extends BaseIntelPlugin {
 			float weight = 0f;
 			for (MarketAPI curr : Misc.getMarketsInLocation(system)) {
 				if (curr.isHidden()) continue;
+				// machine/outsider factions (the Threat hive, Remnants...)
+				// hold nothing a fence can move - not raid material
+				if (UnderworldTithe.isOutsideUnderworldEconomy(curr.getFaction())) continue;
 				if (curr.getFaction().isHostileTo(base.getFactionForUIColors())) {
 					weight += curr.getSize();
 				}

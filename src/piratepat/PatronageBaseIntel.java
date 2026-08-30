@@ -158,10 +158,14 @@ public class PatronageBaseIntel extends PirateBaseIntel {
 		if (target == null) return;
 
 		// replicate vanilla's pre-launch checks so the chest is never charged
-		// for a raid that couldn't have launched anyway
+		// for a raid that couldn't have launched anyway - and require at
+		// least one target that's actually raid material: machine/outsider
+		// factions (the Threat hive, Remnants...) hold nothing a fence can
+		// move, and raiding them is suicide, not business
 		if (!Misc.getMarketsInLocation(target, Factions.PLAYER).isEmpty()) return;
 		boolean hasTargets = false;
 		for (MarketAPI curr : Misc.getMarketsInLocation(target)) {
+			if (UnderworldTithe.isOutsideUnderworldEconomy(curr.getFaction())) continue;
 			if (curr.getFaction().isHostileTo(getFactionForUIColors())) {
 				hasTargets = true;
 				break;

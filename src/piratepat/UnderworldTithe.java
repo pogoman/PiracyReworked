@@ -40,6 +40,23 @@ public class UnderworldTithe {
 
 	public static Logger log = Global.getLogger(UnderworldTithe.class);
 
+	/**
+	 * Factions outside the underworld economy: machine and outsider factions
+	 * (the Threat hive, Remnants, Omega, dwellers, derelicts) neither pay
+	 * protection money nor hold anything a fence can move - and raiding them
+	 * is suicide, not business. Excluded from the tithe and from raid
+	 * targeting alike.
+	 */
+	public static boolean isOutsideUnderworldEconomy(FactionAPI faction) {
+		if (faction == null) return true;
+		String id = faction.getId();
+		return com.fs.starfarer.api.impl.campaign.ids.Factions.THREAT.equals(id)
+				|| com.fs.starfarer.api.impl.campaign.ids.Factions.REMNANTS.equals(id)
+				|| com.fs.starfarer.api.impl.campaign.ids.Factions.OMEGA.equals(id)
+				|| com.fs.starfarer.api.impl.campaign.ids.Factions.DWELLER.equals(id)
+				|| com.fs.starfarer.api.impl.campaign.ids.Factions.DERELICT.equals(id);
+	}
+
 	public static class Result {
 		public float total;
 		public float playerColonies;
@@ -53,6 +70,7 @@ public class UnderworldTithe {
 			if (market.isHidden()) continue;
 			FactionAPI faction = market.getFaction();
 			if (faction == null || Misc.isPirateFaction(faction)) continue;
+			if (isOutsideUnderworldEconomy(faction)) continue;
 
 			float illegalValue = 0f;
 			for (CommodityOnMarketAPI com : market.getAllCommodities()) {
