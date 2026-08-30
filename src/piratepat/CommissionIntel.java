@@ -61,6 +61,7 @@ public class CommissionIntel extends BaseIntelPlugin {
 	protected String itemName;
 	protected float deposit;
 	protected MarketAPI market; // where the order was placed and will be delivered
+	protected MarketAPI sourceMarket; // equipment: the colony that actually holds the item (null for blueprints)
 
 	protected CommissionState state = CommissionState.SOURCING;
 	protected float sourcingDays;
@@ -75,12 +76,13 @@ public class CommissionIntel extends BaseIntelPlugin {
 	protected float launchCheckTimer = 0f; // throttle system-scan launch attempts
 
 	public CommissionIntel(MarketAPI market, String itemId, String itemParam,
-			String itemName, float deposit) {
+			String itemName, float deposit, MarketAPI sourceMarket) {
 		this.market = market;
 		this.itemId = itemId;
 		this.itemParam = itemParam;
 		this.itemName = itemName;
 		this.deposit = deposit;
+		this.sourceMarket = sourceMarket;
 
 		Random random = new Random();
 		sourcingDays = 5f + random.nextFloat() * 10f;
@@ -187,27 +189,47 @@ public class CommissionIntel extends BaseIntelPlugin {
 		PatronageBaseManager mgr = PatronageBaseManager.get();
 		if (mgr == null) return false;
 
+		// the strongest free base takes the job - the deposit deserves the
+		// network's best crack at it
 		PatronageBaseIntel base = null;
 		for (PirateBaseIntel curr : mgr.getBases()) {
 			if (!(curr instanceof PatronageBaseIntel)) continue; // adopted vanilla bases can't carry commissions
 			PatronageBaseIntel pb = (PatronageBaseIntel) curr;
 			if (pb.isEnding() || pb.isEnded()) continue;
 			if (!pb.canCarryCommission()) continue;
-			base = pb;
-			break;
+			if (base == null || pb.getTier().ordinal() > base.getTier().ordinal()) base = pb;
 		}
 		if (base == null) return false;
 
-		StarSystemAPI target = pickTarget(base);
+		StarSystemAPI target;
+		if (sourceMarket != null) {
+			// the goods live at a specific colony - if they're gone (item
+			// removed, colony decivilized, player moved in next door), the
+			// order can't be served
+			if (!sourceMarket.isInEconomy() || findHoldingIndustry() == null
+					|| !Misc.getMarketsInLocation(sourceMarket.getContainingLocation(),
+							Factions.PLAYER).isEmpty()) {
+				refund(PiratePatConfig.brokerRefundUnserved(),
+						"the goods are no longer where the network thought");
+				return true; // handled - stop trying
+			}
+			target = sourceMarket.getStarSystem();
+			if (target == null) return false;
+		} else {
+			target = pickTarget(base);
+		}
 		if (target == null) return false;
 
-		// the victim: whoever holds the biggest hostile market there
-		MarketAPI biggest = null;
-		for (MarketAPI curr : Misc.getMarketsInLocation(target)) {
-			if (curr.isHidden()) continue;
-			if (UnderworldTithe.isOutsideUnderworldEconomy(curr.getFaction())) continue;
-			if (!curr.getFaction().isHostileTo(base.getFactionForUIColors())) continue;
-			if (biggest == null || curr.getSize() > biggest.getSize()) biggest = curr;
+		// the victim: the colony being robbed, or for blueprint jobs whoever
+		// holds the biggest hostile market in the target system
+		MarketAPI biggest = sourceMarket;
+		if (biggest == null) {
+			for (MarketAPI curr : Misc.getMarketsInLocation(target)) {
+				if (curr.isHidden()) continue;
+				if (UnderworldTithe.isOutsideUnderworldEconomy(curr.getFaction())) continue;
+				if (!curr.getFaction().isHostileTo(base.getFactionForUIColors())) continue;
+				if (biggest == null || curr.getSize() > biggest.getSize()) biggest = curr;
+			}
 		}
 
 		if (!base.launchCommissionRaid(target, this)) return false;
@@ -258,14 +280,44 @@ public class CommissionIntel extends BaseIntelPlugin {
 	/** Called by the base when the commissioned raid resolves. */
 	public void reportRaidOutcome(boolean success) {
 		if (state != CommissionState.RAIDING) return;
-		if (success) {
-			state = CommissionState.DELIVERING;
-			raidDays = 0f;
-			sendUpdateIfPlayerHasIntel(new Object(), false);
-		} else {
+		if (!success) {
 			refund(PiratePatConfig.brokerRefundFailed(), "the raid on " + raidTargetName
 					+ " was repelled");
+			return;
 		}
+
+		// for equipment, "the raid succeeded" isn't enough - the raiders must
+		// have actually cracked the colony holding the goods (a raid can
+		// succeed by hitting a softer neighbor), and the item is then TAKEN:
+		// the colony's industry loses it for good
+		if (sourceMarket != null) {
+			boolean raidedTheSource = Misc.flagHasReason(
+					sourceMarket.getMemoryWithoutUpdate(),
+					com.fs.starfarer.api.impl.campaign.ids.MemFlags.RECENTLY_RAIDED,
+					Factions.PIRATES);
+			com.fs.starfarer.api.campaign.econ.Industry holder = findHoldingIndustry();
+			if (!raidedTheSource || holder == null) {
+				refund(PiratePatConfig.brokerRefundFailed(),
+						"the raiders couldn't crack the vault at "
+						+ sourceMarket.getName());
+				return;
+			}
+			holder.setSpecialItem(null); // theft, not manufacture
+		}
+
+		state = CommissionState.DELIVERING;
+		raidDays = 0f;
+		sendUpdateIfPlayerHasIntel(new Object(), false);
+	}
+
+	/** The industry at the source colony that still has the ordered item installed. */
+	protected com.fs.starfarer.api.campaign.econ.Industry findHoldingIndustry() {
+		if (sourceMarket == null) return null;
+		for (com.fs.starfarer.api.campaign.econ.Industry ind : sourceMarket.getIndustries()) {
+			SpecialItemData item = ind.getSpecialItem();
+			if (item != null && itemId.equals(item.getId())) return ind;
+		}
+		return null;
 	}
 
 	protected void deliver() {
@@ -293,10 +345,15 @@ public class CommissionIntel extends BaseIntelPlugin {
 			Global.getSector().addScript(learn);
 		}
 
-		PiratePatData.addLedger("Commission delivered: " + itemName, 0f);
+		PiratePatData.addLedger("Commission delivered: " + itemName
+				+ (toStorage && market != null ? " (storage, " + market.getName() + ")" : ""), 0f);
+		deliveredToStorage = toStorage;
 		sendUpdateIfPlayerHasIntel(new Object(), false);
-		endAfterDelay();
+		// linger long enough that the player can find where it went
+		endAfterDelay(30f);
 	}
+
+	protected boolean deliveredToStorage = false;
 
 	protected void refund(float fraction, String reason) {
 		state = CommissionState.REFUNDED;
@@ -309,7 +366,7 @@ public class CommissionIntel extends BaseIntelPlugin {
 		refundReason = reason;
 		refundAmount = refund;
 		sendUpdateIfPlayerHasIntel(new Object(), false);
-		endAfterDelay();
+		endAfterDelay(10f);
 	}
 
 	protected String refundReason = null;
@@ -363,7 +420,11 @@ public class CommissionIntel extends BaseIntelPlugin {
 					market != null ? market.getName() : "you");
 			break;
 		case DELIVERED:
-			info.addPara("Delivered", t, 3f);
+			if (deliveredToStorage && market != null) {
+				info.addPara("Delivered - in storage at %s", 3f, t, h, market.getName());
+			} else {
+				info.addPara("Delivered to your fleet", t, 3f);
+			}
 			break;
 		case REFUNDED:
 			info.addPara("Order failed - %s refunded", 3f, t, h,
@@ -397,8 +458,15 @@ public class CommissionIntel extends BaseIntelPlugin {
 			}
 			break;
 		case RAIDING:
-			info.addPara("A pirate raid is underway against %s. If it succeeds, your "
-					+ "order ships with the spoils.", opad, h, raidTargetName);
+			if (sourceMarket != null) {
+				info.addPara("A pirate raid is underway against %s - the goods live at %s, "
+						+ "and the raiders must crack that colony specifically. If they do, "
+						+ "your order ships with the spoils.", opad, h, raidTargetName,
+						sourceMarket.getName());
+			} else {
+				info.addPara("A pirate raid is underway against %s. If it succeeds, your "
+						+ "order ships with the spoils.", opad, h, raidTargetName);
+			}
 			break;
 		case DELIVERING:
 			info.addPara("The raid on %s succeeded. Your order is in transit to %s"
@@ -406,10 +474,12 @@ public class CommissionIntel extends BaseIntelPlugin {
 					raidTargetName, market != null ? market.getName() : "your fleet");
 			break;
 		case DELIVERED:
-			if (market != null) {
-				info.addPara("Delivered to storage at %s.", opad, h, market.getName());
+			if (deliveredToStorage && market != null) {
+				info.addPara("Delivered to storage at %s - check the storage tab there "
+						+ "(local storage may want its access fee paid).", opad, h,
+						market.getName());
 			} else {
-				info.addPara("Delivered.", opad);
+				info.addPara("Delivered directly to your fleet.", opad);
 			}
 			if (isBlueprint()) {
 				info.addPara("The pirates kept a copy of the blueprint for themselves, "

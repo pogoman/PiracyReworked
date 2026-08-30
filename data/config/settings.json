@@ -105,6 +105,13 @@
 	"piratepat_brokerEnabled": true,
 	# commission price as a multiple of the item's base value
 	"piratepat_brokerPriceMult": 2.5,
+	# The equipment menu is REAL: it lists items actually installed at NPC
+	# colonies, a successful commission removes the item from that colony's
+	# industry (theft, not manufacture), and the price carries a danger
+	# premium scaled to the source's war-sim defenses: this much extra per
+	# 100 points of defender + station strength. Sources the network's best
+	# base can't crack show greyed out until the underworld grows stronger.
+	"piratepat_brokerDefensePremiumPer100": 0.15,
 	# open commissions allowed at once
 	"piratepat_brokerMaxConcurrent": 2,
 	# Trust gate: minimum rep with the CONTACT (not the faction) before the

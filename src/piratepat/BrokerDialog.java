@@ -60,6 +60,9 @@ public class BrokerDialog implements InteractionDialogPlugin {
 		public String itemParam;
 		public String name;
 		public int price;
+		public MarketAPI source;   // equipment only: the colony that actually holds it
+		public float defense;      // its war-sim defense strength at pricing time
+		public boolean feasible;   // can the network's best base plausibly crack it
 		public CatalogEntry(String itemId, String itemParam, String name, int price) {
 			this.itemId = itemId;
 			this.itemParam = itemParam;
@@ -130,8 +133,9 @@ public class BrokerDialog implements InteractionDialogPlugin {
 			break;
 		case EQUIPMENT:
 			showCatalog(buildEquipmentCatalog(),
-					"\"Industrial hardware. Domain-era, functional, provenance best left "
-					+ "undiscussed. You name it, we find where it lives.\"");
+					"\"Industrial hardware. Domain-era, functional, currently in someone "
+					+ "else's possession - the network keeps track of where every piece "
+					+ "lives, and what it's guarded by. The figure covers the taking.\"");
 			break;
 		case BLUEPRINTS:
 			showCatalog(buildBlueprintOffers(),
@@ -198,8 +202,15 @@ public class BrokerDialog implements InteractionDialogPlugin {
 		}
 		float credits = Global.getSector().getPlayerFleet().getCargo().getCredits().get();
 		for (CatalogEntry entry : catalog) {
-			options.addOption(entry.name + " - " + Misc.getDGSCredits(entry.price), entry);
-			if (entry.price > credits) {
+			String label = entry.name;
+			if (entry.source != null) label += " (" + entry.source.getName() + ")";
+			options.addOption(label + " - " + Misc.getDGSCredits(entry.price), entry);
+			if (entry.source != null && !entry.feasible) {
+				options.setEnabled(entry, false);
+				options.setTooltip(entry, "The network isn't strong enough to crack "
+						+ entry.source.getName() + "'s defenses. A better-funded underworld "
+						+ "could be.");
+			} else if (entry.price > credits) {
 				options.setEnabled(entry, false);
 				options.setTooltip(entry, "You can't cover the deposit.");
 			}
@@ -211,9 +222,17 @@ public class BrokerDialog implements InteractionDialogPlugin {
 	protected void showConfirm(CatalogEntry entry) {
 		selected = entry;
 		options.clearOptions();
-		text.addPara("\"" + entry.name + ". It can be had.\" Your contact names the figure: "
-				+ "%s, all of it up front.", Misc.getHighlightColor(),
-				Misc.getDGSCredits(entry.price));
+		if (entry.source != null) {
+			text.addPara("\"" + entry.name + ". It lives at " + entry.source.getName()
+					+ ", in the " + entry.source.getStarSystem().getNameWithLowercaseType()
+					+ ". The defenses have been looked at - the figure includes the danger "
+					+ "premium.\" Your contact names it: %s, all of it up front.",
+					Misc.getHighlightColor(), Misc.getDGSCredits(entry.price));
+		} else {
+			text.addPara("\"" + entry.name + ". It can be had.\" Your contact names the figure: "
+					+ "%s, all of it up front.", Misc.getHighlightColor(),
+					Misc.getDGSCredits(entry.price));
+		}
 		text.addPara("\"To be clear about the fine print, since you look like the careful "
 				+ "type: nobody manufactures this for us. It will be taken from whoever has "
 				+ "it, by people whose wages your deposit pays. If their operation goes badly, "
@@ -255,7 +274,7 @@ public class BrokerDialog implements InteractionDialogPlugin {
 		AddRemoveCommodity.addCreditsLossText(selected.price, text);
 		PiratePatData.addCommissionDeposit(selected.price, selected.name, market.getName());
 		new CommissionIntel(market, selected.itemId, selected.itemParam, selected.name,
-				selected.price);
+				selected.price, selected.source);
 
 		text.addPara("A code goes into a battered tripad and the money is gone. \"Pleasure. "
 				+ "Watch your intel feed - my people will be in touch when there's something "
@@ -265,6 +284,40 @@ public class BrokerDialog implements InteractionDialogPlugin {
 	}
 
 	// --- shared helpers (also used by CommissionIntel) ---
+
+	/**
+	 * The strongest raid the network can currently mount: the best
+	 * commission-capable base's tier-determined raid strength. With zero
+	 * bases, assume the tier-2 footing the war chest rebuilds at - the
+	 * broker still deals during a rebuild, and weak targets stay orderable.
+	 */
+	public static float networkRaidStrength() {
+		float best = 0f;
+		PatronageBaseManager mgr = PatronageBaseManager.get();
+		if (mgr != null) {
+			for (PirateBaseIntel base : mgr.getBases()) {
+				if (!(base instanceof PatronageBaseIntel) || base.isEnding() || base.isEnded()) continue;
+				best = Math.max(best, base.getBaseRaidFP());
+			}
+		}
+		if (best <= 0f) best = 150f; // tier-2 rebuild footing
+		return best;
+	}
+
+	/**
+	 * A colony's defense as the raid sim will see it: its faction's fleet
+	 * strength in-system plus its station's strength - the same comparison
+	 * PirateRaidActionStage makes when deciding whether a market can be
+	 * raided at all.
+	 */
+	public static float defenseStrengthFor(MarketAPI market) {
+		if (market.getStarSystem() == null) return Float.MAX_VALUE;
+		float str = com.fs.starfarer.api.impl.campaign.command.WarSimScript.getFactionStrength(
+				market.getFaction(), market.getStarSystem());
+		str += com.fs.starfarer.api.impl.campaign.command.WarSimScript.getStationStrength(
+				market.getFaction(), market.getStarSystem(), market.getPrimaryEntity());
+		return str;
+	}
 
 	public static int countCommissionCapableBases() {
 		PatronageBaseManager mgr = PatronageBaseManager.get();
@@ -280,20 +333,69 @@ public class BrokerDialog implements InteractionDialogPlugin {
 
 	// --- catalog construction ---
 
+	/**
+	 * The equipment menu is REAL: it lists items actually installed in NPC
+	 * industries somewhere the raiders could go (no player systems, no
+	 * pirate friends, no machine hives). The price carries a danger premium
+	 * scaled to the source colony's war-sim defenses, and an entry the
+	 * network isn't currently strong enough to crack shows greyed out - feed
+	 * the war chest and the menu opens up. A successful commission takes
+	 * the item off the colony's industry: theft, not manufacture.
+	 */
 	protected List<CatalogEntry> buildEquipmentCatalog() {
-		List<CatalogEntry> catalog = new ArrayList<CatalogEntry>();
 		int cap = priceCapFor(importance());
 		beyondReach = 0;
-		for (SpecialItemSpecAPI spec : Global.getSettings().getAllSpecialItemSpecs()) {
-			if (!spec.hasTag(Items.TAG_COLONY_ITEM)) continue;
-			int price = (int) (priceForSpecial(spec.getId(), null)
-					* PiratePatConfig.brokerPriceMult());
-			if (price <= 0) continue;
-			if (price > cap) {
+		float networkStr = networkRaidStrength();
+		float mult = PiratePatConfig.brokerPriceMult();
+		float premiumPer100 = PiratePatConfig.brokerDefensePremiumPer100();
+
+		java.util.Map<String, CatalogEntry> best = new java.util.LinkedHashMap<String, CatalogEntry>();
+		for (MarketAPI market : Global.getSector().getEconomy().getMarketsCopy()) {
+			if (market.isHidden() || market.isPlayerOwned()) continue;
+			if (market.getFaction() == null || Misc.isPirateFaction(market.getFaction())) continue;
+			if (UnderworldTithe.isOutsideUnderworldEconomy(market.getFaction())) continue;
+			if (market.getStarSystem() == null) continue;
+			// raids never enter systems with player colonies (vanilla rule)
+			if (!Misc.getMarketsInLocation(market.getContainingLocation(),
+					com.fs.starfarer.api.impl.campaign.ids.Factions.PLAYER).isEmpty()) continue;
+
+			float defense = -1f;
+			for (com.fs.starfarer.api.campaign.econ.Industry ind : market.getIndustries()) {
+				SpecialItemData item = ind.getSpecialItem();
+				if (item == null || item.getId() == null) continue;
+				SpecialItemSpecAPI spec = Global.getSettings().getSpecialItemSpec(item.getId());
+				if (spec == null) continue;
+
+				if (defense < 0f) defense = defenseStrengthFor(market);
+				boolean feasible = networkStr >= defense;
+				int price = (int) (spec.getBasePrice() * mult
+						* (1f + defense / 100f * premiumPer100));
+				if (price <= 0) continue;
+
+				// one entry per item type: prefer a source the network can
+				// actually crack, then the cheapest
+				CatalogEntry prev = best.get(item.getId());
+				boolean better = prev == null
+						|| (feasible && !prev.feasible)
+						|| (feasible == prev.feasible && price < prev.price);
+				if (!better) continue;
+
+				CatalogEntry entry = new CatalogEntry(item.getId(), item.getData(),
+						spec.getName(), price);
+				entry.source = market;
+				entry.defense = defense;
+				entry.feasible = feasible;
+				best.put(item.getId(), entry);
+			}
+		}
+
+		List<CatalogEntry> catalog = new ArrayList<CatalogEntry>();
+		for (CatalogEntry entry : best.values()) {
+			if (entry.price > cap) {
 				beyondReach++;
 				continue;
 			}
-			catalog.add(new CatalogEntry(spec.getId(), null, spec.getName(), price));
+			catalog.add(entry);
 		}
 		Collections.sort(catalog, new Comparator<CatalogEntry>() {
 			public int compare(CatalogEntry a, CatalogEntry b) {

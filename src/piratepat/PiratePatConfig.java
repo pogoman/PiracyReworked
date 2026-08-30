@@ -98,6 +98,7 @@ public class PiratePatConfig {
 	}
 
 	public static float brokerImportanceCapBase() { return i("piratepat_brokerImportanceCapBase"); }
+	public static float brokerDefensePremiumPer100() { return f("piratepat_brokerDefensePremiumPer100"); }
 	public static float brokerPriceMult() { return f("piratepat_brokerPriceMult"); }
 	public static int brokerMaxConcurrent() { return i("piratepat_brokerMaxConcurrent"); }
 	public static int brokerBpOffers() { return i("piratepat_brokerBpOffers"); }
