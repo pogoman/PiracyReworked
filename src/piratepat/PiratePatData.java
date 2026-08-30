@@ -376,6 +376,20 @@ public class PiratePatData {
 				Global.getSector().getFaction(factionId));
 	}
 
+	// Whether the POOLED bounty (hunters see one combined price, not
+	// per-faction ledgers) is currently drawing hunters. Drives intel
+	// visibility and the one-time activation alert.
+	public static final String KEY_POOL_ACTIVE = "piratepat_bountyPoolActive";
+
+	public static boolean isPoolActive() {
+		Object val = Global.getSector().getPersistentData().get(KEY_POOL_ACTIVE);
+		return val instanceof Boolean && (Boolean) val;
+	}
+
+	public static void setPoolActive(boolean active) {
+		Global.getSector().getPersistentData().put(KEY_POOL_ACTIVE, active);
+	}
+
 	/** Drop bounty entries that should never have existed (save cleanup). */
 	public static void purgeInvalidBounties() {
 		List<String> remove = new ArrayList<String>();

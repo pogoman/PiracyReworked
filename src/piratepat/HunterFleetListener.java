@@ -18,9 +18,12 @@ import com.fs.starfarer.api.util.Misc;
 
 /**
  * Attached to each bounty hunter fleet. When the player destroys the fleet in
- * battle, the sponsoring faction's bounty goes UP - killing the hunters they
- * sent makes you more notorious and more wanted, not less. Serialized with
- * the fleet, so it stores only the faction id.
+ * battle, the price on their head goes UP - killing hunters makes you more
+ * notorious and more wanted, not less. Hunters collect from the POOLED
+ * bounty, so the increase lands on every poster's ledger: the flat amount
+ * split by each faction's share, plus the fractional interest on their own
+ * figure. Serialized with the fleet; a non-null factionId is a fleet from
+ * before pooling and raises only its sponsor's ledger.
  */
 public class HunterFleetListener implements FleetEventListener {
 
@@ -38,26 +41,43 @@ public class HunterFleetListener implements FleetEventListener {
 		if (!battle.isPlayerInvolved()) return;
 		if (!PiratePatConfig.enabled() || !PiratePatConfig.bountyEnabled()) return;
 
-		float before = PiratePatData.getBounty(factionId);
-		float increase = PiratePatConfig.bountyPerKillFlat()
-				+ before * PiratePatConfig.bountyPerKillFraction();
-		if (increase <= 0) return;
+		float totalIncrease = 0f;
+		if (factionId != null) {
+			// legacy pre-pooling fleet: raises only its sponsor's ledger
+			float before = PiratePatData.getBounty(factionId);
+			totalIncrease = PiratePatConfig.bountyPerKillFlat()
+					+ before * PiratePatConfig.bountyPerKillFraction();
+			if (totalIncrease <= 0) return;
+			PiratePatData.raiseBounty(factionId, totalIncrease);
+		} else {
+			// pooled fleet: the flat amount lands on each poster by their
+			// share of the pool, the fraction as interest on their own figure
+			float total = PiratePatData.getTotalBounty();
+			if (total <= 0) return;
+			for (java.util.Map.Entry<String, Float> entry
+					: new java.util.LinkedHashMap<String, Float>(PiratePatData.bounties()).entrySet()) {
+				float share = entry.getValue() / total;
+				float increase = PiratePatConfig.bountyPerKillFlat() * share
+						+ entry.getValue() * PiratePatConfig.bountyPerKillFraction();
+				if (increase <= 0) continue;
+				PiratePatData.raiseBounty(entry.getKey(), increase);
+				totalIncrease += increase;
+			}
+			if (totalIncrease <= 0) return;
+		}
 
-		PiratePatData.raiseBounty(factionId, increase);
-
-		FactionAPI faction = Global.getSector().getFaction(factionId);
-		String name = faction != null ? Misc.ucFirst(faction.getDisplayName()) : factionId;
-		PiratePatData.addLedger("Destroyed " + name + " hunters - the price on your head rises",
-				increase);
+		PiratePatData.addLedger("Destroyed bounty hunters - the price on your head rises",
+				totalIncrease);
 
 		MessageIntel msg = new MessageIntel();
 		msg.addLine("Bounty increased", Misc.getNegativeHighlightColor());
-		msg.addLine(BaseIntelPlugin.BULLET + "Defeating their hunters has made you more notorious.",
+		msg.addLine(BaseIntelPlugin.BULLET + "Defeating the hunters has made you more notorious.",
 				Misc.getTextColor());
-		msg.addLine(BaseIntelPlugin.BULLET + "%s bounty: %s", Misc.getTextColor(),
-				new String[] { name, Misc.getDGSCredits(PiratePatData.getBounty(factionId)) },
+		msg.addLine(BaseIntelPlugin.BULLET + "Combined bounty: %s", Misc.getTextColor(),
+				new String[] { Misc.getDGSCredits(PiratePatData.getTotalBounty()) },
 				Misc.getHighlightColor());
-		if (faction != null) msg.setIcon(faction.getCrest());
+		FactionAPI indep = Global.getSector().getFaction(Factions.INDEPENDENT);
+		if (indep != null) msg.setIcon(indep.getCrest());
 		Global.getSector().getCampaignUI().addMessage(msg, MessageClickAction.INTEL_TAB);
 
 		// the underworld appreciates its patron handling the opposition

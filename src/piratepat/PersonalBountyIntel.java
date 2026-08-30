@@ -47,16 +47,17 @@ public class PersonalBountyIntel extends BaseIntelPlugin {
 	}
 
 	/**
-	 * Stay registered but stay OFF the intel list while every bounty is dormant -
-	 * below the activation floor, or funding hunters too weak to bother a fleet
-	 * your size. The list only shows the wanted poster once someone is actually
-	 * willing to come collect; BountyHunterManager maintains that active set on
-	 * its ~10-day check, and reappearance rides in with the activation alert.
+	 * Stay registered but stay OFF the intel list while the combined price is
+	 * dormant - below the activation floor, or funding hunters too weak to
+	 * bother a fleet your size. The list only shows the wanted poster once
+	 * someone is actually willing to come collect; BountyHunterManager
+	 * maintains the pool state on its ~10-day check, and reappearance rides
+	 * in with the activation alert.
 	 */
 	@Override
 	public boolean isHidden() {
 		if (PiratePatData.getTotalBounty() <= 0f) return true;
-		return PiratePatData.activeBountyFactions().isEmpty();
+		return !PiratePatData.isPoolActive();
 	}
 
 	@Override
@@ -111,25 +112,29 @@ public class PersonalBountyIntel extends BaseIntelPlugin {
 			}
 		});
 
+		float total = PiratePatData.getTotalBounty();
+		boolean poolActive = BountyHunterManager.isActiveBounty(total, strength, fleetValue);
+
 		if (sorted.isEmpty()) {
 			info.addPara("No standing bounties. Your ledger is clean - or forgotten.", opad);
 		} else {
+			// the ledgers are per poster, but the hunters are freelancers who
+			// collect from everyone at once - one combined price, one verdict
 			info.addPara("Standing bounties:", opad);
 			for (Map.Entry<String, Float> entry : sorted) {
 				FactionAPI faction = Global.getSector().getFaction(entry.getKey());
 				String name = faction != null ? Misc.ucFirst(faction.getDisplayName()) : entry.getKey();
-				float val = entry.getValue();
-				boolean active = BountyHunterManager.isActiveBounty(val, strength, fleetValue);
-				Color c = active ? neg : gray;
-				String status;
-				if (active) status = "";
-				else if (val < min) status = " (below hunters' notice)";
-				else if (BountyHunterManager.isFrozenByFleetValue(val, fleetValue))
-					status = " (frozen - your fleet isn't a prize worth the contract)";
-				else status = " (dormant - your fleet deters hunters)";
-				info.addPara(BULLET + name + ": %s" + status, 3f, c, h,
-						Misc.getDGSCredits(val));
+				info.addPara(BULLET + name + ": %s", 3f, poolActive ? neg : gray, h,
+						Misc.getDGSCredits(entry.getValue()));
 			}
+			String poolStatus;
+			if (poolActive) poolStatus = " - and hunters are taking the contract";
+			else if (total < min) poolStatus = " - below hunters' notice";
+			else if (BountyHunterManager.isFrozenByFleetValue(total, fleetValue))
+				poolStatus = " - frozen: your fleet isn't a prize worth the contract";
+			else poolStatus = " - dormant: your fleet deters hunters";
+			info.addPara("Combined price, as the hunters see it: %s" + poolStatus + ".", opad,
+					poolActive ? neg : gray, h, Misc.getDGSCredits(total));
 
 			// pay-off buttons, one per faction
 			info.addPara("You can buy your way off a faction's list - discreet payments to the "
@@ -148,21 +153,17 @@ public class PersonalBountyIntel extends BaseIntelPlugin {
 			}
 		}
 
-		float total = PiratePatData.getTotalBounty();
 		if (total >= min) {
 			float fp = Math.min(total / PiratePatConfig.bountyCreditsPerFP(),
 					PiratePatConfig.bountyMaxFPPerFleet());
-			info.addPara("Independent hunter fleets take these contracts, ambushing you with "
-					+ "strength scaled to the bounty. Large bounties fund multiple fleets "
-					+ "hunting concurrently.", opad);
+			info.addPara("Independent hunter fleets take the combined contract, ambushing you "
+					+ "with strength scaled to the total price. A large enough total funds "
+					+ "multiple fleets hunting concurrently.", opad);
 			info.addPara(BULLET + "Estimated hunter fleet strength: up to ~%s fleet points each.",
 					3f, h, "" + (int) fp);
 
-			float largest = 0f;
-			for (Float b : bounties.values()) largest = Math.max(largest, b);
-
 			// frozen-vs-cheap-fleet note (takes priority - it also stops growth)
-			if (BountyHunterManager.isFrozenByFleetValue(largest, fleetValue)) {
+			if (BountyHunterManager.isFrozenByFleetValue(total, fleetValue)) {
 				info.addPara("Your fleet is worth too little to be a prize worth this contract - "
 						+ "no one will burn a hunt on a decoy, and the bounty is frozen where it "
 						+ "stands until you sail something worth destroying.", opad,
@@ -172,13 +173,13 @@ public class PersonalBountyIntel extends BaseIntelPlugin {
 				float frac = PiratePatConfig.bountyWorthItFraction();
 				CampaignFleetAPI player = Global.getSector().getPlayerFleet();
 				if (frac > 0f && player != null
-						&& BountyHunterManager.fundedHunterStrength(largest)
+						&& BountyHunterManager.fundedHunterStrength(total)
 								< player.getEffectiveStrength() * frac) {
-					info.addPara("Your current fleet is formidable enough that this price isn't "
-							+ "yet worth the risk to any hunter. Sail with a weaker fleet, or let "
-							+ "the bounty keep climbing, and that changes - a big enough price "
-							+ "always finds takers.", opad, Misc.getPositiveHighlightColor(),
-							"isn't yet worth the risk");
+					info.addPara("Your current fleet is formidable enough that the combined "
+							+ "price isn't yet worth the risk to any hunter. Sail with a weaker "
+							+ "fleet, or let the bounties keep climbing, and that changes - a big "
+							+ "enough price always finds takers.", opad,
+							Misc.getPositiveHighlightColor(), "isn't yet worth the risk");
 				}
 			}
 		}
@@ -194,12 +195,13 @@ public class PersonalBountyIntel extends BaseIntelPlugin {
 		}
 		float dormantGrowth = PiratePatConfig.bountyDormantGrowthPerMonth();
 		if (dormantGrowth > 0) {
-			info.addPara("A dormant bounty - one too small to draw hunters yet - festers faster, "
-					+ "climbing about %s per month until it becomes a threat worth acting on. "
-					+ "Ignoring a small price on your head only lets it ripen.", opad, neg,
+			info.addPara("While the combined price is too small to draw hunters, every ledger "
+					+ "festers faster - climbing about %s per month until the total becomes a "
+					+ "threat worth acting on. Ignoring a small price on your head only lets it "
+					+ "ripen.", opad, neg,
 					(int) Math.round(dormantGrowth * 100f) + "%");
 		}
-		info.addPara("Destroying hunter fleets raises the sponsor's bounty - notoriety "
+		info.addPara("Destroying hunter fleets raises every poster's bounty - notoriety "
 				+ "compounds.", opad, neg, "raises");
 	}
 

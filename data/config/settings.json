@@ -198,13 +198,18 @@
 	# level (0.3 = "high" suspicion).
 	"piratepat_bountySuspicionFloor": 0.05,
 	"piratepat_bountySuspicionFull": 0.3,
-	# a faction's bounty must exceed this before hunters take the contract
+	# The ledgers are per faction (each can be paid off separately), but the
+	# hunters are freelancers who collect from every poster at once - so
+	# everything on their side works off the COMBINED total: activation,
+	# worth-it deterrence, the frozen check, fleet strength, and fleet count.
+	# the combined bounty must exceed this before hunters take the contract
 	"piratepat_bountyActivationMin": 50000,
-	# hunter fleet strength: 1 fleet point per this many bounty credits
+	# hunter fleet strength: 1 fleet point per this many combined-bounty credits
 	"piratepat_bountyCreditsPerFP": 1000,
 	"piratepat_bountyMaxFPPerFleet": 200,
-	# each additional concurrent fleet per this much bounty, up to the cap
+	# each additional concurrent fleet per this much combined bounty, up to the cap
 	"piratepat_bountyCreditsPerExtraFleet": 250000,
+	# max concurrent hunter fleets, total (key name kept for config compat)
 	"piratepat_bountyMaxFleetsPerFaction": 3,
 	# spawn roll: every ~10 days per faction with an active bounty and a free
 	# hunter slot
