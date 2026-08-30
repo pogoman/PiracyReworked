@@ -65,6 +65,10 @@ public class PiratePatModPlugin extends BaseModPlugin {
 			log.info("Installed BountyHunterManager");
 		}
 
+		// saves from before the machine-faction exclusion may carry bounties
+		// from factions that don't post them (the Threat hive...)
+		PiratePatData.purgeInvalidBounties();
+
 		// transient: re-added every load, never serialized into the save
 		sector.getListenerManager().addListener(new BlackMarketListener(), true);
 		sector.getListenerManager().addListener(new PirateHuntListener(), true);

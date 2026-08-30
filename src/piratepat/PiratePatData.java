@@ -351,6 +351,7 @@ public class PiratePatData {
 	 */
 	public static boolean addBounty(String factionId, float amount) {
 		if (amount <= 0) return false;
+		if (neverPostsBounties(factionId)) return false;
 		float before = getBounty(factionId);
 		float after = before + amount;
 		bounties().put(factionId, after);
@@ -361,7 +362,30 @@ public class PiratePatData {
 	/** Raise a faction's bounty (e.g. after the player kills its hunters). */
 	public static void raiseBounty(String factionId, float amount) {
 		if (amount <= 0) return;
+		if (neverPostsBounties(factionId)) return;
 		bounties().put(factionId, getBounty(factionId) + amount);
+	}
+
+	/**
+	 * Machine and outsider factions don't work through mercenary circles -
+	 * no personal bounties from the Threat hive or the Remnants, however
+	 * aggrieved. Also used to purge such entries from existing saves.
+	 */
+	public static boolean neverPostsBounties(String factionId) {
+		return UnderworldTithe.isOutsideUnderworldEconomy(
+				Global.getSector().getFaction(factionId));
+	}
+
+	/** Drop bounty entries that should never have existed (save cleanup). */
+	public static void purgeInvalidBounties() {
+		List<String> remove = new ArrayList<String>();
+		for (String factionId : bounties().keySet()) {
+			if (neverPostsBounties(factionId)) remove.add(factionId);
+		}
+		for (String factionId : remove) {
+			clearBounty(factionId);
+			log.info("Purged invalid personal bounty from faction " + factionId);
+		}
 	}
 
 	/** Clear a faction's bounty entirely (paid off). */
