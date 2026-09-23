@@ -131,6 +131,26 @@ public class PatronageBaseIntel extends PirateBaseIntel {
 	}
 
 	/**
+	 * Vanilla pays 40k-80k by tier (pirateBaseBounty1..5), a spread sized for
+	 * a station with the same 2 light + 1 medium patrol at every tier. With
+	 * the garrison and scaling patrols a tier-5 base is several times the
+	 * fight, so the bounty scales the same way the garrison does: a tier-1
+	 * figure plus a step per tier. Keeps vanilla's +/-10% jitter, 10k
+	 * rounding, faction pick, rep change and 180-day duration.
+	 */
+	@Override
+	protected void setBounty() {
+		super.setBounty();
+		if (bountyData == null) return; // no faction to post it
+		if (!PiratePatConfig.enabled() || !PiratePatConfig.baseBountyScaling()) return;
+
+		float base = PiratePatConfig.baseBountyTier1()
+				+ getTier().ordinal() * PiratePatConfig.baseBountyPerTier();
+		base *= 0.9f + (float) Math.random() * 0.2f;
+		bountyData.baseBounty = (int) (base / 10000) * 10000;
+	}
+
+	/**
 	 * Same as vanilla, but the pirate-activity intel this base issues for its
 	 * target system is the respite-piercing variant.
 	 */

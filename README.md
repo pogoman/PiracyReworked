@@ -109,41 +109,106 @@ own money (tithe included), so laying off eventually restores the respite.
 Hunting pirates also offsets your ledger: destroyed bases and fleets reduce
 your lifetime contribution.
 
-## A price on your head
+## The debt
 
-Each faction whose markets you smuggle through tracks the value you fed the
-pirates there and posts a *personal* bounty - no faction rep consequences,
-because nothing can be proven well enough for open hostilities. Accrual is
-gated on the market's vanilla smuggling suspicion level: transponder-off
-trading generates none; brazen trading gets you posted. Commissioning a
-broker raid adds a cut of the deposit to the victim's ledger - a raid is
-loud.
+**Off by default.** Switch it on in the LunaLib settings menu, or set
+`piratepat_debtEnabled` in `data/config/settings.json`. It's safe to flip
+either way mid-campaign: switched off, every collector stands down and goes
+home, nothing accrues, nothing is billed, and any balance already on the books
+simply sleeps; switched back on, that balance wakes with its notice and grace
+periods restarted from that day.
 
-The ledgers are per faction, but the hunters are freelancers who collect
-from every poster at once - everything on their side works off the
-**combined** price:
+Smuggling through a faction's black market doesn't put a price on your head -
+it puts you in a ledger. What the faction lost isn't the cargo - that was
+never theirs - it's the 30% tariff it would have collected had the same goods
+crossed its docks legally. That evaded duty becomes a *receivable* in your
+name, and a collection house in independent space buys it up at a discount
+and comes to collect. Still no faction rep consequences (nothing can be
+proven well enough for open hostilities) - just a balance, and people who
+want it. Accrual is gated on the market's vanilla smuggling suspicion: none
+below 0.05, scaling to full attribution at 0.3, so quiet transponder-off
+trading generates nothing and brazen trading gets you billed. Commissioning a
+broker raid adds 75% of the deposit - that one is theft, not evasion, and a
+raid is loud. However many factions
+you rob there is one balance and one holder; the house consolidates.
 
-- The pool activates once it clears the floor (50k default) *and* funds
-  hunters worth taking on your current fleet - a formidable fleet deters
-  hunters, but the deterrence is uncapped in reverse: a big enough price
-  always finds takers.
-- While too small to draw hunters, every ledger *festers* at a higher rate
-  (10%/month default) - ignoring a small price only lets it ripen. Active
-  bounties compound at 2%/month.
-- A throwaway decoy fleet *freezes* the bounty instead - the contract is
-  your fleet, destroyed, and nobody burns a hunt on a worthless prize.
-- Hunter fleets scale with the pool (1 FP per 1,000 credits, capped 200 FP
-  per fleet, up to 3 concurrent), and destroying one raises *every*
-  poster's bounty. Fighting hunters carries no rep impact either way.
-- Buy your way off a faction's list from the intel screen at a 25% premium.
+It compounds monthly - 3% while the house holds the paper (~43%/yr), 6% once
+the pirates do (~101%/yr, doubling annually). A written notice arrives on day
+15, nothing is dispatched before day 30 or under a 15,000 balance, and an
+outstanding balance touches nothing else: no prices, no rep, no market access.
+It just sits there getting bigger until a collector finds you.
+
+**One collector, sized off your fleet, not off the money.** There is only
+ever one collector fleet, and it is sent at full strength from the first day:
+your *combat* fleet points - mothballed hulls, fighters and civilian ships
+don't count - times 1.2. No ladder of smaller fleets, no escalation, no second
+crew while the first is alive. The floor is clamped to your own fleet, so a
+two-frigate captain can never be sent something bigger than they are, and no
+collector fields a hull class more than one step above your biggest warship.
+400 FP hard cap, 45 days of hunting; a crew that gives up, or dies to a
+patrol, is replaced on the next roll.
+
+**There is no pay-off button anywhere** - not on the intel screen, not at a
+market, not through the broker. The debt is settled fleet-to-fleet, in the
+interaction dialog, when a collector catches you:
+
+- **Pay.** Cover it and you're square; cover part of it and you sign for the
+  rest.
+- **Take terms**, always offered, even at zero credits: the balance becomes a
+  monthly repayment of that month's interest plus 20% of the principal (3,000
+  floor), drawn through the vanilla monthly report and done in about eleven
+  months. Collectors stop coming entirely while a plan runs. Miss one and half
+  the shortfall is added back; miss two and the creditors start enforcing;
+  miss three and the terms are torn up and the paper is sold on - and the
+  collectors come straight back, at roughly double the rate, flying pirate
+  colours. Signing is relief, not an exit.
+- **Fight.** The contract lives in the crew's officers - see below.
+- **Cut the link** and run. Allowed, because a small fleet needs an out, and
+  the same crew simply keeps hunting. The only price is 15% per duck on
+  whatever the pirates eventually claim you owe.
+
+**Lose the fight and they collect by force.** Boarding parties take credits
+first, then cargo by value - credited at half base value, since a hold of
+goods is worth less to a collector than cash - until the balance is covered,
+and the balance drops by exactly what they took. They never take people, AI
+cores, or your last 100 supplies and fuel: caught broke in deep space is a
+setback, not a soft-lock.
+
+**Destroy every officer and the debt dies with them.** The one fleet's
+contract lives in its officers: the captain's flagship and every hull with an
+officer aboard. Kill all of them - however many fights it takes - and there is
+nobody left to collect: the balance is written off, whoever held it. Let any
+officer get away, or run yourself, and the same crew finds you again; nothing
+is written up for the attempt. Finishing the house's crew *earns* pirate
+reputation; once the pirates own your paper, the crew you finish is theirs,
+and it costs. (Optional, off by default: `debtSellOnHouseDefeat` makes the
+house sell your paper to the pirates when its crew dies instead of writing it
+off, so the pirate crew is the one you have to finish.)
+
+**Sold paper means real pirates** - genuine pirate fleets in pirate colours,
+at 6%/month, quoting figures they invented: 1.3x to 2.2x the truth, rounded to
+something suspiciously round. They come for you whatever your standing with
+the pirates is, and being their patron does not exempt you from being their
+debtor. Your real balance is printed beside their number every time, in
+highlight, so calling them on it is never a gamble - it costs a story point,
+and the audit is permanent for that debt.
+
+*The cruel part:* the figure you agree to becomes the balance. Sign for an
+inflated quote and the lie is what you owe from then on. The true number was
+on screen the whole time.
 
 ## Everything else
 
 - **Scaling defenses**: tier 3+ bases field additional medium/heavy patrols
   and bigger fleets, plus a tier-scaled garrison stationed on the base - a
   tier 5 base is a fortress.
+- **Scaling bounties**: vanilla posts 40k-80k on a base by tier, a spread
+  sized for defenses that never grow. Here the bounty grows with the fight:
+  40/105/170/235/300k by tier at defaults (tier 5 pays what vanilla pays for
+  a large Luddic Path base). Configurable, or switch it off for vanilla
+  figures.
 - **Machine factions excluded**: the Threat, Remnants, Omega and friends
-  neither pay the tithe, nor get raided for commissions, nor post bounties.
+  neither pay the tithe, nor get raided for commissions, nor extend credit.
 - **Kept vanilla**: raid strength/frequency per base, tier progression,
   station restoration, the 6-18 month respawn freeze after a base kill, the
   first-year raid grace. Removed: vanilla's rule that every destroyed base
@@ -151,7 +216,9 @@ from every poster at once - everything on their side works off the
 - **The intel screen** ("Pirate War Chest") is a balance sheet: chest,
   income streams (including the tithe and your colonies' share), operating
   bases, savings toward the next base, the recent ledger - and exactly how
-  much of the pirate war economy *you* bankrolled.
+  much of the pirate war economy *you* bankrolled. Your outstanding balance
+  and who holds it are listed there too, read-only: it is a statement, not a
+  payment screen.
 
 ## Compatibility
 

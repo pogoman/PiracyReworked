@@ -102,7 +102,7 @@ public class PiratePatConfig {
 	public static float brokerPriceMult() { return f("piratepat_brokerPriceMult"); }
 	public static int brokerMaxConcurrent() { return i("piratepat_brokerMaxConcurrent"); }
 	public static int brokerBpOffers() { return i("piratepat_brokerBpOffers"); }
-	public static float brokerBountyFraction() { return f("piratepat_brokerBountyFraction"); }
+	public static float brokerDebtFraction() { return f("piratepat_brokerDebtFraction"); }
 	public static float brokerRefundFailed() { return f("piratepat_brokerRefundFailed"); }
 	public static float brokerRefundUnserved() { return f("piratepat_brokerRefundUnserved"); }
 	public static float brokerStallDays() { return i("piratepat_brokerStallDays"); }
@@ -122,23 +122,69 @@ public class PiratePatConfig {
 	public static boolean defenseScaling() { return b("piratepat_defenseScaling"); }
 	public static float defenseFleetSizeMax() { return f("piratepat_defenseFleetSizeMax"); }
 
-	public static boolean bountyEnabled() { return b("piratepat_bountyEnabled"); }
-	public static float bountySuspicionFloor() { return f("piratepat_bountySuspicionFloor"); }
-	public static float bountySuspicionFull() { return f("piratepat_bountySuspicionFull"); }
-	public static float bountyActivationMin() { return i("piratepat_bountyActivationMin"); }
-	public static float bountyCreditsPerFP() { return i("piratepat_bountyCreditsPerFP"); }
-	public static float bountyMaxFPPerFleet() { return i("piratepat_bountyMaxFPPerFleet"); }
-	public static float bountyCreditsPerExtraFleet() { return i("piratepat_bountyCreditsPerExtraFleet"); }
-	public static int bountyMaxFleetsPerFaction() { return i("piratepat_bountyMaxFleetsPerFaction"); }
-	public static float bountySpawnProb() { return f("piratepat_bountySpawnProb"); }
-	public static float bountyGrowthPerMonth() { return f("piratepat_bountyGrowthPerMonth"); }
-	public static float bountyDormantGrowthPerMonth() { return f("piratepat_bountyDormantGrowthPerMonth"); }
-	public static float bountyWorthItFraction() { return f("piratepat_bountyWorthItFraction"); }
-	public static float bountyMinFleetValueFraction() { return f("piratepat_bountyMinFleetValueFraction"); }
-	public static float bountyPerKillFlat() { return i("piratepat_bountyPerKillFlat"); }
-	public static float bountyPerKillFraction() { return f("piratepat_bountyPerKillFraction"); }
-	public static float bountyPayoffMult() { return f("piratepat_bountyPayoffMult"); }
-	public static int pirateRepPerHunterKill() { return i("piratepat_pirateRepPerHunterKill"); }
+	public static boolean baseBountyScaling() { return b("piratepat_baseBountyScaling"); }
+	public static float baseBountyTier1() { return i("piratepat_baseBountyTier1"); }
+	public static float baseBountyPerTier() { return i("piratepat_baseBountyPerTier"); }
+
+	// --- Debt ---
+
+	public static boolean debtEnabled() { return b("piratepat_debtEnabled"); }
+	public static float debtTariffFraction() { return f("piratepat_debtTariffFraction"); }
+	public static float debtSuspicionFloor() { return f("piratepat_debtSuspicionFloor"); }
+	public static float debtSuspicionFull() { return f("piratepat_debtSuspicionFull"); }
+	public static float debtInterestPerMonth() { return f("piratepat_debtInterestPerMonth"); }
+	public static float debtPirateInterestPerMonth() { return f("piratepat_debtPirateInterestPerMonth"); }
+	public static float debtCollectorMinDebt() { return i("piratepat_debtCollectorMinDebt"); }
+	public static int debtNoticeDays() { return i("piratepat_debtNoticeDays"); }
+
+	/**
+	 * Days of grace before any collector can spawn.
+	 *
+	 * <p>Clamped to at least debtNoticeDays (critique F11): a LunaLib user who
+	 * sets grace to 0 must not be ambushed before the written notice has even
+	 * arrived. The clamp lives here rather than at the call sites so every
+	 * caller gets it for free.
+	 */
+	public static int debtGraceDays() {
+		return Math.max(i("piratepat_debtGraceDays"), debtNoticeDays());
+	}
+
+	public static float debtSpawnProb() { return f("piratepat_debtSpawnProb"); }
+
+	// THE collector - there is only ever one, sent at full strength. Sized off
+	// the player's combat FP alone; the floor is clamped to the player in
+	// PirateDebt.collectorFP and the cap is the ceiling for that one fleet.
+	public static float debtCollectorFPRatio() { return f("piratepat_debtCollectorFPRatio"); }
+	public static int debtCollectorMinFP() { return i("piratepat_debtCollectorMinFP"); }
+	public static int debtCollectorMaxFP() { return i("piratepat_debtCollectorMaxFP"); }
+	public static int debtCollectorHuntDays() { return i("piratepat_debtCollectorHuntDays"); }
+	public static int debtCollectorBurnBoost() { return i("piratepat_debtCollectorBurnBoost"); }
+
+	// the officer rule's one fork: with this on, destroying the house's crew
+	// sells the paper to the pirates instead of ending the debt, and it is
+	// their crew whose officers have to die. Off = the debt dies with whichever
+	// crew loses its last officer.
+	public static boolean debtSellOnHouseDefeat() { return b("piratepat_debtSellOnHouseDefeat"); }
+
+	public static float debtPirateMarkupMin() { return f("piratepat_debtPirateMarkupMin"); }
+	public static float debtPirateMarkupMax() { return f("piratepat_debtPirateMarkupMax"); }
+	public static float debtDuckSurcharge() { return f("piratepat_debtDuckSurcharge"); }
+	public static int debtChallengeStoryPoints() { return i("piratepat_debtChallengeStoryPoints"); }
+	public static float debtInstallmentFraction() { return f("piratepat_debtInstallmentFraction"); }
+	public static float debtInstallmentMin() { return i("piratepat_debtInstallmentMin"); }
+	public static float debtLateFeeFraction() { return f("piratepat_debtLateFeeFraction"); }
+	public static int debtMissesBeforeEnforcement() { return i("piratepat_debtMissesBeforeEnforcement"); }
+	public static int debtMissesBeforeSale() { return i("piratepat_debtMissesBeforeSale"); }
+	public static int debtEnforcementDays() { return i("piratepat_debtEnforcementDays"); }
+	public static int pirateRepPerCollectorKill() { return i("piratepat_pirateRepPerCollectorKill"); }
+	public static int pirateRepPerPirateCollectorKill() { return i("piratepat_pirateRepPerPirateCollectorKill"); }
+
+	// forced collection when the player fights a collector and loses
+	public static boolean debtSeizeEnabled() { return b("piratepat_debtSeizeEnabled"); }
+	public static float debtSeizeCargoFenceRate() { return f("piratepat_debtSeizeCargoFenceRate"); }
+	public static float debtSeizeSupplyFloor() { return i("piratepat_debtSeizeSupplyFloor"); }
+	public static float debtSeizeFuelFloor() { return i("piratepat_debtSeizeFuelFloor"); }
+	public static boolean debtSeizeSpecialItems() { return b("piratepat_debtSeizeSpecialItems"); }
 
 	public static boolean respitePiercing() { return b("piratepat_respitePiercing"); }
 	public static float pierceMinContribution() { return i("piratepat_pierceMinContribution"); }

@@ -100,8 +100,8 @@
 	# holds the goods. The broker deals even with zero bases: the deposit then
 	# finances the network's reconstruction, and the order waits until the
 	# underworld can sail again. Deposits count as personal contribution at
-	# full weight, and the raided faction's personal bounty on you rises by
-	# a cut of the deposit - a raid is loud.
+	# full weight, and the raided faction's losses become a receivable in
+	# your name worth a cut of the deposit - a raid is loud.
 	"piratepat_brokerEnabled": true,
 	# commission price as a multiple of the item's base value
 	"piratepat_brokerPriceMult": 2.5,
@@ -129,8 +129,9 @@
 	# number offered is 1 + importance level (Very Low 1 ... Very High 5),
 	# capped by this.
 	"piratepat_brokerBpOffers": 5,
-	# fraction of the deposit added to the raided faction's personal bounty
-	"piratepat_brokerBountyFraction": 0.75,
+	# fraction of the deposit that becomes debt in your name - the raided
+	# faction's losses, bought up by a collection house that knows who paid
+	"piratepat_brokerDebtFraction": 0.75,
 	# refund fraction when the raid is repelled (the network tried and bled)
 	"piratepat_brokerRefundFailed": 0.5,
 	# refund fraction when no raid could be mounted at all
@@ -175,6 +176,16 @@
 	"piratepat_defenseScaling": true,
 	"piratepat_defenseFleetSizeMax": 2.0,
 
+	# --- Base bounties ---
+	# Vanilla posts 40k-80k by tier - a spread sized for defenses that never
+	# grow. With the garrison and scaling patrols a tier-5 base is several
+	# times the fight, so its bounty scales the same way: tier-1 figure plus
+	# a step per tier (40/105/170/235/300k at defaults; tier 5 matches
+	# vanilla's large Luddic Path base). Off = vanilla's pirateBaseBounty1..5.
+	"piratepat_baseBountyScaling": true,
+	"piratepat_baseBountyTier1": 40000,
+	"piratepat_baseBountyPerTier": 65000,
+
 	# --- Respite piercing ---
 	# Piracy Respite ("pirates are wary of attacking you") is vanilla's
 	# permanent reward for defeating the pirate colony crisis. Wariness fades
@@ -188,78 +199,138 @@
 	"piratepat_pierceMinContribution": 500000,
 	"piratepat_pierceMinShare": 0.25,
 
-	# --- Personal bounties ---
-	# Each faction whose markets you smuggle through tracks the value you fed
-	# to the pirates there and posts a PERSONAL bounty on your head equal to
-	# it. No faction-level consequences - you're one ship captain, possibly
-	# operating transponder-off; they can't prove enough for a war, but the
-	# underworld talks, and money finds hunters. Independent bounty hunter
-	# fleets ambush you with strength scaled to the bounty; past the per-fleet
-	# cap, multiple fleets hunt concurrently. Bounties decay slowly if you
-	# stop adding to them.
-	"piratepat_bountyEnabled": true,
-	# Bounty only accrues when the market's smuggling suspicion implicates
-	# you (the same suspicion level shown in the black market tooltip -
+	# --- Debt ---
+	# You don't get a price on your head - you get a BILL. The value you fence
+	# through a faction's black market becomes a receivable in your name, and
+	# an independent collection house buys it up at a discount and comes to
+	# collect. One balance, one holder, compounding monthly. There is no
+	# pay-off button anywhere: it is settled fleet-to-fleet, in the interaction
+	# dialog, when the collector catches you - pay what you're carrying and
+	# sign for the rest, or fight. ONE collector fleet, sent at full strength,
+	# and the contract lives in its officers: destroy every ship with an
+	# officer aboard and the debt dies with them. Let one get away, or run,
+	# and the same crew finds you again. Stop paying on terms and the house
+	# sells your paper to the pirates, who quote figures they made up. A story
+	# point forces them honest, permanently.
+	#
+	# OFF BY DEFAULT. Safe to switch either way mid-campaign: off, every
+	# collector stands down and goes home, nothing accrues, nothing is billed,
+	# and any balance already on the books sleeps; back on, that balance wakes
+	# with its notice and grace periods restarted from that day.
+	"piratepat_debtEnabled": false,
+	# What the faction actually lost is the TARIFF it would have collected had
+	# the same cargo crossed its docks legally - not the cargo's full value,
+	# which was never theirs. Debt accrues at this fraction of the value you
+	# fed the pirates. 0.3 matches vanilla's standard 30% tariff. The war
+	# chest still receives the full amount; only the receivable is scaled.
+	"piratepat_debtTariffFraction": 0.3,
+	# Debt only accrues when the market's smuggling suspicion implicates you
+	# (the same suspicion level shown in the black market tooltip -
 	# transponder-off trading generates none). Below the floor nothing
 	# accrues; the attributed fraction scales linearly to 100% at the "full"
 	# level (0.3 = "high" suspicion).
-	"piratepat_bountySuspicionFloor": 0.05,
-	"piratepat_bountySuspicionFull": 0.3,
-	# The ledgers are per faction (each can be paid off separately), but the
-	# hunters are freelancers who collect from every poster at once - so
-	# everything on their side works off the COMBINED total: activation,
-	# worth-it deterrence, the frozen check, fleet strength, and fleet count.
-	# the combined bounty must exceed this before hunters take the contract
-	"piratepat_bountyActivationMin": 50000,
-	# hunter fleet strength: 1 fleet point per this many combined-bounty credits
-	"piratepat_bountyCreditsPerFP": 1000,
-	"piratepat_bountyMaxFPPerFleet": 200,
-	# each additional concurrent fleet per this much combined bounty, up to the cap
-	"piratepat_bountyCreditsPerExtraFleet": 250000,
-	# max concurrent hunter fleets, total (key name kept for config compat)
-	"piratepat_bountyMaxFleetsPerFaction": 3,
-	# spawn roll: every ~10 days per faction with an active bounty and a free
-	# hunter slot
-	"piratepat_bountySpawnProb": 0.33,
-	# monthly interest on each standing bounty that is ACTIVE (drawing hunters) -
-	# it compounds upward while unpaid (positive = grow, negative = decay/forget,
-	# 0 = static)
-	"piratepat_bountyGrowthPerMonth": 0.02,
-	# while a bounty is still DORMANT - too small to draw hunters (below the
-	# activation floor, or dwarfed by your current fleet so no hunter finds it
-	# worth the risk) - it festers faster than an active one, compounding at this
-	# higher monthly rate until it grows into a real threat and activates.
-	"piratepat_bountyDormantGrowthPerMonth": 0.1,
-	# hunters weigh the job against your CURRENT fleet: they only take the
-	# contract if the total hunter strength the bounty can MOTIVATE (uncapped -
-	# bounty/creditsPerFP times the concurrent fleets it funds) is at least this
-	# fraction as strong as your deployed fleet. A huge endgame fleet shrugs off a
-	# SMALL bounty; dock most of it for a stealth run and the same bounty is
-	# suddenly worth collecting. Because the figure is uncapped and the bounty
-	# festers upward while deferred, no fleet is ever permanently exempt - a big
-	# enough price always finds takers (so deployment-cost-mod whale fleets still
-	# get hunted, they just cost more to trigger). 0 = always hunt when activated.
-	"piratepat_bountyWorthItFraction": 0.4,
-	# the contract is to destroy YOUR FLEET, so it is worthless against a decoy.
-	# If your fleet's ship value is below this fraction of the posted bounty, the
-	# bounty is FROZEN - hidden and not growing, no hunters dispatched - so you
-	# cannot clear a large bounty by sailing a throwaway fleet and dying on
-	# purpose. It thaws once your fleet is worth enough to be a real prize.
-	# 0 = disable the frozen-vs-cheap-fleet check entirely.
-	"piratepat_bountyMinFleetValueFraction": 0.25,
-	# defeating a hunter fleet raises that faction's bounty - killing their
-	# hunters makes you more notorious, not less. Added as a flat amount plus
-	# a fraction of the standing bounty.
-	"piratepat_bountyPerKillFlat": 15000,
-	"piratepat_bountyPerKillFraction": 0.1,
-	# reputation points gained with the pirates each time you destroy a
-	# hunter fleet (they appreciate their patron dealing with the opposition);
-	# capped so hunter-farming alone can't take you past friendly
-	"piratepat_pirateRepPerHunterKill": 2,
-	# paying off a bounty at any of that faction's markets costs this
-	# multiple of the bounty (a premium over the raw figure - you're buying
-	# silence, not settling a debt)
-	"piratepat_bountyPayoffMult": 1.25,
+	"piratepat_debtSuspicionFloor": 0.05,
+	"piratepat_debtSuspicionFull": 0.3,
+	# monthly compounding while the collection house holds the paper
+	# (0.03 = ~43%/yr - expensive, but survivable)
+	"piratepat_debtInterestPerMonth": 0.03,
+	# monthly compounding once the pirates hold it (0.06 = ~101%/yr - the
+	# balance doubles annually, and they don't send letters)
+	"piratepat_debtPirateInterestPerMonth": 0.06,
+	# no collector is dispatched below this balance - it isn't worth the fuel.
+	# Protects the first hour of a new game.
+	"piratepat_debtCollectorMinDebt": 15000,
+	# days after the debt opens that the written collection notice arrives.
+	# You always learn the debt exists before it can hurt you.
+	"piratepat_debtNoticeDays": 15,
+	# days after the debt opens before any collector can spawn. Clamped in
+	# code to at least the notice period, so lowering it can never get you
+	# ambushed before the letter arrives.
+	"piratepat_debtGraceDays": 30,
+	# spawn roll, per ~10-day check past the grace period. Doubled while the
+	# creditors are enforcing after missed payments.
+	"piratepat_debtSpawnProb": 0.35,
+	# THE collector - there is only ever one, and it is sent at full strength
+	# from the first day: no ladder of smaller fleets, no escalation, no
+	# second crew while the first is alive. Its fleet points are YOUR combat
+	# fleet points times this ratio, never the balance in credits - that is
+	# what makes a doomstack structurally impossible. 1.2 is what the old
+	# escalation curve only reached at its cap.
+	"piratepat_debtCollectorFPRatio": 1.2,
+	# Floor on the collector's fleet points - itself clamped in code to your own
+	# combat FP, so the floor can never hand a two-frigate player something
+	# bigger than they are. (Raising it above your fleet does nothing.)
+	"piratepat_debtCollectorMinFP": 12,
+	# hard ceiling on the one collector's fleet points - a safety net, not the
+	# sizing: the ratio above is what keeps it relative to your fleet
+	"piratepat_debtCollectorMaxFP": 400,
+	# how long a collector hunts you before giving up and going home. A crew
+	# that gives up, or dies to somebody who isn't you, is replaced on the
+	# next spawn roll.
+	"piratepat_debtCollectorHuntDays": 45,
+	# flat burn levels a collector may add so it can actually catch you
+	"piratepat_debtCollectorBurnBoost": 2,
+	# THE OFFICER RULE's one fork. Off (default): destroy every ship with an
+	# officer aboard and the debt dies with the crew, whoever holds the paper.
+	# On: destroying the HOUSE's crew makes the house cut its losses and sell
+	# your paper to the pirates instead, and it is their crew whose officers
+	# have to die - a two-act arc, and the pirate act is reachable by fighting
+	# rather than only by defaulting on terms.
+	"piratepat_debtSellOnHouseDefeat": false,
+	# Once the pirates hold your paper they ALWAYS inflate the figure - never
+	# an honest quote. The multiplier is rolled once per collector and frozen,
+	# and the number is rounded to something suspiciously round. Your own
+	# balance is always printed beside it, so the challenge is never a gamble.
+	"piratepat_debtPirateMarkupMin": 1.3,
+	"piratepat_debtPirateMarkupMax": 2.2,
+	# added to the markup for every comm link you've cut on a collector.
+	# Running is allowed and the same crew simply keeps hunting; the only
+	# price is on the next lie.
+	"piratepat_debtDuckSurcharge": 0.15,
+	# story point cost of calling a pirate crew on an invented figure. The
+	# audit is permanent for that debt: every later quote is honest.
+	# 0 hides the option entirely.
+	"piratepat_debtChallengeStoryPoints": 1,
+	# Terms: each month you pay the holder's interest PLUS this fraction of
+	# the principal, so the balance falls by exactly this much per month
+	# whoever holds it, and the plan always terminates (~11 months).
+	"piratepat_debtInstallmentFraction": 0.2,
+	# floor on a monthly installment, so a small plan finishes instead of
+	# dripping forever
+	"piratepat_debtInstallmentMin": 3000,
+	# miss a payment and this fraction of the SHORTFALL (not the balance) is
+	# added back to what you owe
+	"piratepat_debtLateFeeFraction": 0.5,
+	# consecutive misses before the creditors start enforcing (spawn interval
+	# halved, spawn chance doubled) and before they give up and sell
+	"piratepat_debtMissesBeforeEnforcement": 2,
+	"piratepat_debtMissesBeforeSale": 3,
+	# how long an enforcement window lasts
+	"piratepat_debtEnforcementDays": 60,
+	# reputation points GAINED with the pirates for finishing a collector crew
+	# working for the independent house (they appreciate their patron handling
+	# the opposition); capped so it can't take you past friendly
+	"piratepat_pirateRepPerCollectorKill": 2,
+	# reputation points LOST with the pirates for finishing a collector crew
+	# working the underworld's OWN paper - once they hold your debt, the
+	# collectors you shoot are theirs. Bounded so it can never fall past
+	# suspicious. 0 = off.
+	"piratepat_pirateRepPerPirateCollectorKill": 1,
+	# A debt collector collects BY FORCE. Lose a stand-up fight to one and
+	# boarding parties take credits first, then cargo by value, until the
+	# balance is covered - and the balance drops by what they took. They never
+	# take people, AI cores, or your last supplies and fuel.
+	"piratepat_debtSeizeEnabled": true,
+	# seized cargo is credited against the balance at this fraction of base
+	# value - a hold full of goods is worth less to a collector than cash
+	"piratepat_debtSeizeCargoFenceRate": 0.5,
+	# units of supplies and fuel a seizure will never touch, so being caught
+	# in deep space is a setback and not a soft-lock
+	"piratepat_debtSeizeSupplyFloor": 100,
+	"piratepat_debtSeizeFuelFloor": 100,
+	# whether special items (blueprints, nanoforges, and the like) can be
+	# taken. AI cores are always exempt.
+	"piratepat_debtSeizeSpecialItems": false,
 
 	# --- Intel ---
 	"piratepat_intelShowExact": true,

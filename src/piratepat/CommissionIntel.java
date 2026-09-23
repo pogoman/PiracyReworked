@@ -38,8 +38,9 @@ import com.fs.starfarer.api.util.WeightedRandomPicker;
  *
  * The most patron-like act in the mod, and priced accordingly on the
  * personal ledger: the full deposit counts as lifetime contribution, and the
- * raided faction's personal bounty on the player rises by a cut of it - a
- * raid is loud, and the underworld talks.
+ * raided faction's losses become a receivable in the player's name for a cut
+ * of it - a raid is loud, the underworld talks, and somebody always ends up
+ * holding the paper.
  */
 public class CommissionIntel extends BaseIntelPlugin {
 
@@ -226,7 +227,11 @@ public class CommissionIntel extends BaseIntelPlugin {
 		if (biggest == null) {
 			for (MarketAPI curr : Misc.getMarketsInLocation(target)) {
 				if (curr.isHidden()) continue;
-				if (UnderworldTithe.isOutsideUnderworldEconomy(curr.getFaction())) continue;
+				// critique F5: the victim gate and the debt-eligibility gate
+				// must be the SAME predicate, or a raid against a colony this
+				// loop accepts accrues nothing while the intel text below
+				// still tells the player their paper has grown
+				if (!PirateDebt.canOriginateDebt(curr.getFaction())) continue;
 				if (!curr.getFaction().isHostileTo(base.getFactionForUIColors())) continue;
 				if (biggest == null || curr.getSize() > biggest.getSize()) biggest = curr;
 			}
@@ -237,15 +242,25 @@ public class CommissionIntel extends BaseIntelPlugin {
 		state = CommissionState.RAIDING;
 		raidDays = 0f;
 		raidTargetName = target.getNameWithNoType();
-		if (biggest != null && !biggest.getFaction().isPlayerFaction()
-				&& !Misc.isPirateFaction(biggest.getFaction())) {
-			victimFactionId = biggest.getFactionId();
-			if (PiratePatConfig.bountyEnabled()) {
-				float bounty = deposit * PiratePatConfig.brokerBountyFraction();
-				if (bounty > 0) {
-					PiratePatData.raiseBounty(victimFactionId, bounty);
+		// the equipment path assigns "biggest" straight from sourceMarket and
+		// never runs the loop above, so the eligibility test has to be here
+		// too - one predicate, both paths, per critique F5
+		if (biggest != null && PirateDebt.canOriginateDebt(biggest.getFaction())) {
+			float claim = PiratePatConfig.debtEnabled()
+					? deposit * PiratePatConfig.brokerDebtFraction() : 0f;
+			// the field is set only when a claim is actually booked, so the
+			// paragraph in createSmallDescription that reads off it can never
+			// promise a receivable that does not exist
+			if (claim > 0f) {
+				victimFactionId = biggest.getFactionId();
+				if (PirateDebt.accrue(victimFactionId, claim)) {
+					PiratePatData.addLedger("A collection house in independent space buys up "
+							+ biggest.getFaction().getDisplayNameWithArticle()
+							+ "'s losses from the " + raidTargetName + " raid", 0f);
+				} else {
 					PiratePatData.addLedger("Word gets around: " + biggest.getFaction().getDisplayName()
-							+ " suspects who paid for the " + raidTargetName + " raid", 0f);
+							+ " suspects who paid for the " + raidTargetName
+							+ " raid - the losses go on your balance", 0f);
 				}
 			}
 		}
@@ -493,10 +508,13 @@ public class CommissionIntel extends BaseIntelPlugin {
 			break;
 		}
 
-		if (victimFactionId != null && state != CommissionState.SOURCING) {
-			info.addPara("Word of who bankrolled the raid travels in the wrong circles - "
-					+ "your standing bounty with the victims has grown.", opad, neg,
-					"your standing bounty");
+		if (victimFactionId != null && state != CommissionState.SOURCING
+				&& PiratePatConfig.debtEnabled()) {
+			info.addPara("Word of who bankrolled the raid travels in the wrong circles. "
+					+ "The victims wrote the losses off and sold the paper on - a cut of "
+					+ "what you paid the fixer is now a receivable in your name, and "
+					+ "somebody will come to collect it.", opad, neg,
+					"a receivable in your name");
 		}
 	}
 }

@@ -18,7 +18,8 @@ import com.fs.starfarer.api.util.Misc;
 /**
  * The pirate war economy balance sheet: chest, income, operating bases,
  * savings toward the next base, lifetime bookkeeping (including exactly how
- * much of it the player bankrolled), and the recent ledger.
+ * much of it the player bankrolled), whatever receivable is outstanding
+ * against the player, and the recent ledger.
  */
 public class WarChestIntel extends BaseIntelPlugin {
 
@@ -228,6 +229,44 @@ public class WarChestIntel extends BaseIntelPlugin {
 					"" + PiratePatData.getRaidsSucceeded(),
 					"" + PiratePatData.getRaidsDefeated(),
 					"" + PiratePatData.getBasesPurchased());
+		}
+
+		// what you owe - READ ONLY. Author decision D4: there is no way to
+		// settle a receivable from a screen, so this section reports and
+		// never offers. No buttons, no settle option, no payment link. The
+		// balance moves fleet-to-fleet or it does not move.
+		if (PirateDebt.isLive()) {
+			info.addPara("Outstanding against you:", opad);
+			info.addPara(BULLET + "Balance: %s, held by %s.", 3f,
+					PirateDebt.trueBalanceColor(),
+					Misc.getDGSCredits(PirateDebt.principal()),
+					PirateDebt.holderName());
+			info.addPara(BULLET + "Originated with %s; interest runs at %s a month.", 3f, h,
+					PirateDebt.originName(),
+					Misc.getRoundedValueMaxOneAfterDecimal(PirateDebt.monthlyRate() * 100f) + "%");
+			if (PirateDebt.hasPlan()) {
+				info.addPara(BULLET + "Terms agreed: %s a month, drawn against the monthly "
+						+ "report. Collectors stand off while the payments arrive.", 3f, h,
+						Misc.getDGSCredits(PirateDebt.installment()));
+				int missed = PirateDebt.missed();
+				if (missed > 0) {
+					info.addPara(BULLET + "Missed payments: %s. Half of every shortfall is "
+							+ "added back to the balance.", 3f, neg, "" + missed);
+				}
+			} else if (PirateDebt.isNoticeSent()) {
+				info.addPara(BULLET + "A collection notice has been served. They are "
+						+ "authorised to settle it wherever they find you.", 3f, neg,
+						"wherever they find you");
+			} else {
+				info.addPara(BULLET + "Nobody has come to your door about it yet.", gray, 3f);
+			}
+			if (PirateDebt.isPirateHeld() && !PirateDebt.isAudited()) {
+				info.addPara("The figures they quote you are not the figures in this ledger.",
+						3f, neg, "not the figures in this ledger");
+			}
+			info.addPara("Nothing on this screen settles it. The balance moves across a comm "
+					+ "link with their guns already trained on you - or dies with the last "
+					+ "officer of the crew they sent.", gray, 3f);
 		}
 
 		// recent ledger

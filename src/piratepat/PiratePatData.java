@@ -2,10 +2,8 @@ package piratepat;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.log4j.Logger;
 
@@ -164,8 +162,9 @@ public class PiratePatData {
 	 * Credits the player handed to underworld figures through vanilla
 	 * contact jobs (custom production markups, dubious ship sales): chest
 	 * income and full-weight personal contribution, same as a black market
-	 * buy. No bounty accrual - the payment is to the pirates themselves,
-	 * and they don't bounty their patron.
+	 * buy. Nothing accrues against you for it - the money goes to the
+	 * pirates themselves, and nobody buys up a receivable against their
+	 * own patron.
 	 */
 	public static void addUnderworldSpend(float amount, String ledgerText) {
 		if (amount <= 0) return;
@@ -300,129 +299,6 @@ public class PiratePatData {
 				+ getLifetimeRaidReturns() + getLifetimePlunder() + getLifetimeTithe();
 		if (total <= 0) return 0f;
 		return getLifetimePlayerContribution() / total;
-	}
-
-	// --- personal bounties (factionId -> credits) ---
-
-	public static final String KEY_BOUNTIES = "piratepat_bounties";
-
-	/**
-	 * Factions whose bounty is currently ACTIVE (drawing hunters). Maintained by
-	 * BountyHunterManager on its ~10-day check: it drives the intel's visibility
-	 * and gates the one-time "price on your head" notification so it fires only
-	 * on the dormant -> active transition, never on every accrual.
-	 */
-	public static final String KEY_ACTIVE_BOUNTIES = "piratepat_activeBounties";
-
-	@SuppressWarnings("unchecked")
-	public static Set<String> activeBountyFactions() {
-		Object val = Global.getSector().getPersistentData().get(KEY_ACTIVE_BOUNTIES);
-		if (!(val instanceof Set)) {
-			val = new LinkedHashSet<String>();
-			Global.getSector().getPersistentData().put(KEY_ACTIVE_BOUNTIES, val);
-		}
-		return (Set<String>) val;
-	}
-
-	@SuppressWarnings("unchecked")
-	public static Map<String, Float> bounties() {
-		Object val = Global.getSector().getPersistentData().get(KEY_BOUNTIES);
-		if (!(val instanceof Map)) {
-			val = new LinkedHashMap<String, Float>();
-			Global.getSector().getPersistentData().put(KEY_BOUNTIES, val);
-		}
-		return (Map<String, Float>) val;
-	}
-
-	public static float getBounty(String factionId) {
-		Float val = bounties().get(factionId);
-		return val == null ? 0f : val;
-	}
-
-	public static float getTotalBounty() {
-		float total = 0f;
-		for (Float val : bounties().values()) total += val;
-		return total;
-	}
-
-	/**
-	 * Accrue bounty with the faction owning the market where the contribution
-	 * happened. Returns true if this crossed the activation threshold.
-	 */
-	public static boolean addBounty(String factionId, float amount) {
-		if (amount <= 0) return false;
-		if (neverPostsBounties(factionId)) return false;
-		float before = getBounty(factionId);
-		float after = before + amount;
-		bounties().put(factionId, after);
-		float min = PiratePatConfig.bountyActivationMin();
-		return before < min && after >= min;
-	}
-
-	/** Raise a faction's bounty (e.g. after the player kills its hunters). */
-	public static void raiseBounty(String factionId, float amount) {
-		if (amount <= 0) return;
-		if (neverPostsBounties(factionId)) return;
-		bounties().put(factionId, getBounty(factionId) + amount);
-	}
-
-	/**
-	 * Machine and outsider factions don't work through mercenary circles -
-	 * no personal bounties from the Threat hive or the Remnants, however
-	 * aggrieved. Also used to purge such entries from existing saves.
-	 */
-	public static boolean neverPostsBounties(String factionId) {
-		return UnderworldTithe.isOutsideUnderworldEconomy(
-				Global.getSector().getFaction(factionId));
-	}
-
-	// Whether the POOLED bounty (hunters see one combined price, not
-	// per-faction ledgers) is currently drawing hunters. Drives intel
-	// visibility and the one-time activation alert.
-	public static final String KEY_POOL_ACTIVE = "piratepat_bountyPoolActive";
-
-	public static boolean isPoolActive() {
-		Object val = Global.getSector().getPersistentData().get(KEY_POOL_ACTIVE);
-		return val instanceof Boolean && (Boolean) val;
-	}
-
-	public static void setPoolActive(boolean active) {
-		Global.getSector().getPersistentData().put(KEY_POOL_ACTIVE, active);
-	}
-
-	/** Drop bounty entries that should never have existed (save cleanup). */
-	public static void purgeInvalidBounties() {
-		List<String> remove = new ArrayList<String>();
-		for (String factionId : bounties().keySet()) {
-			if (neverPostsBounties(factionId)) remove.add(factionId);
-		}
-		for (String factionId : remove) {
-			clearBounty(factionId);
-			log.info("Purged invalid personal bounty from faction " + factionId);
-		}
-	}
-
-	/** Clear a faction's bounty entirely (paid off). */
-	public static void clearBounty(String factionId) {
-		bounties().remove(factionId);
-		activeBountyFactions().remove(factionId);
-	}
-
-	/**
-	 * Monthly interest on the player's notoriety: standing bounties compound
-	 * upward while unpaid. A negative rate would decay instead (forgotten
-	 * below 1000 credits); at the default positive rate nothing is forgotten.
-	 */
-	public static void growBounties() {
-		float rate = PiratePatConfig.bountyGrowthPerMonth();
-		if (rate == 0f) return;
-		List<String> remove = new ArrayList<String>();
-		for (Map.Entry<String, Float> entry : bounties().entrySet()) {
-			float val = entry.getValue() * (1f + rate);
-			if (val < 1000f) remove.add(entry.getKey());
-			else entry.setValue(val);
-		}
-		for (String k : remove) bounties().remove(k);
 	}
 
 	// --- ledger (preformatted strings; newest first) ---

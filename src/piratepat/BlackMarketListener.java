@@ -10,7 +10,6 @@ import com.fs.starfarer.api.impl.campaign.CoreCampaignPluginImpl;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import com.fs.starfarer.api.impl.campaign.ids.Factions;
 import com.fs.starfarer.api.impl.campaign.shared.PlayerTradeDataForSubmarket;
-import com.fs.starfarer.api.util.Misc;
 
 /**
  * Feeds the war chest from black market transactions. Trades count regardless
@@ -80,43 +79,56 @@ public class BlackMarketListener implements ColonyInteractionListener {
 		if (total > 0) {
 			PiratePatData.addPlayerContribution(total, market.getName());
 			WarChestIntel.ensureAdded();
-			accrueBounty(market, total);
+			accrueDebt(market, total);
 		}
 	}
 
 	/**
-	 * The market's owning faction quietly adds the value you fed the pirates
-	 * to a personal bounty on your head - but only to the extent their port
-	 * authority actually suspects you. Uses vanilla's live smuggling
-	 * suspicion (the black market tooltip's level): transponder-off trading
-	 * generates none, so careful smugglers stay off the wanted lists. Below
-	 * the floor nothing accrues; attribution scales to 100% at the "full"
-	 * suspicion level. Pirates don't bounty their patron, and you can't
-	 * bounty yourself.
+	 * Moving cargo through the black market costs the market's owning faction
+	 * the tariff it would have collected on the same goods at its own docks.
+	 * That evaded duty - not the cargo's full value, which was never theirs -
+	 * is what they book as a loss, and what a collection house in independent
+	 * space buys up as a receivable in your name. Only to the
+	 * extent their port authority actually suspects you, though: this uses
+	 * vanilla's live smuggling suspicion (the black market tooltip's level),
+	 * so transponder-off trading generates nothing and careful smugglers
+	 * stay off the books. Below the floor nothing accrues; attribution
+	 * scales to 100% at the "full" suspicion level. Nobody writes paper
+	 * against their own patron, so the pirates are skipped, and you cannot
+	 * hold a claim against yourself.
+	 *
+	 * <p>The debt itself is one consolidated balance owed to one holder -
+	 * see {@link PirateDebt}. Smuggling through a second faction raises the
+	 * same balance rather than opening a second claim, so this method never
+	 * needs to know what came before.
 	 */
-	private static void accrueBounty(MarketAPI market, float amount) {
-		if (!PiratePatConfig.bountyEnabled()) return;
+	private static void accrueDebt(MarketAPI market, float amount) {
+		if (!PiratePatConfig.debtEnabled()) return;
 		if (market.getFaction() == null) return;
 		if (market.getFaction().isPlayerFaction()) return;
 		String factionId = market.getFactionId();
 		if (Factions.PIRATES.equals(factionId)) return;
 
+		// what the faction actually lost is not the cargo's value - the goods
+		// were never theirs. It is the tariff they would have collected had
+		// the same cargo crossed their docks legally. That is the receivable.
+		amount *= PiratePatConfig.debtTariffFraction();
+		if (amount <= 0) return;
+
 		float suspicion = CoreCampaignPluginImpl.computeSmugglingSuspicionLevel(market);
-		if (suspicion < PiratePatConfig.bountySuspicionFloor()) return;
-		float full = Math.max(0.01f, PiratePatConfig.bountySuspicionFull());
+		if (suspicion < PiratePatConfig.debtSuspicionFloor()) return;
+		float full = Math.max(0.01f, PiratePatConfig.debtSuspicionFull());
 		amount *= Math.min(1f, suspicion / full);
 		if (amount <= 0) return;
 
-		float before = PiratePatData.getBounty(factionId);
-		PiratePatData.addBounty(factionId, amount);
-		PersonalBountyIntel.ensureAdded();
-		if (before <= 0f) {
-			// first accrual for this faction: a quiet ledger line for provenance,
-			// so a bounty never seems to appear from nowhere. It stays dormant
-			// (hidden, no notification) until BountyHunterManager judges it worth
-			// hunting - that transition is where the player is alerted.
-			PiratePatData.addLedger(Misc.ucFirst(market.getFaction().getDisplayName())
-					+ " takes note of your black market dealings at " + market.getName(), 0f);
+		if (PirateDebt.accrue(factionId, amount)) {
+			// the debt was opened by this run: one quiet ledger line for
+			// provenance, so a balance never seems to appear from nowhere.
+			// Later runs just raise it, silently - the written notice on day
+			// fifteen is where the player is told it matters.
+			PiratePatData.addLedger("A collection house in independent space buys up "
+					+ market.getFaction().getDisplayNameWithArticle() + "'s losses at "
+					+ market.getName(), 0f);
 		}
 	}
 

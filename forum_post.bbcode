@@ -1,5 +1,5 @@
 [center][size=20pt][b]Piracy Reworked[/b][/size]
-[i]v0.1.0 - the underworld runs on your money - for Starsector 0.98a-RC8[/i][/center]
+[i]v0.2.0 - the underworld runs on your money - for Starsector 0.98a-RC8[/i][/center]
 
 [hr]
 
@@ -11,7 +11,7 @@ In vanilla, trading with the transponder off has literally zero consequences - a
 
 [size=14pt][b]Download[/b][/size]
 
-[url=https://github.com/pogoman/PiracyReworked/releases/download/v0.1.0/PiracyReworked-0.1.0.zip]PiracyReworked-0.1.0.zip[/url]
+[url=https://github.com/pogoman/PiracyReworked/releases/download/v0.2.0/PiracyReworked-0.2.0.zip]PiracyReworked-0.2.0.zip[/url]
 
 Extract into your Starsector [tt]mods/[/tt] folder and enable it in the launcher. Safe to add to an existing save.
 
@@ -64,18 +64,24 @@ Piracy Respite - vanilla's permanent reward for beating the pirate crisis - says
 
 [hr]
 
-[size=14pt][b]A price on your head[/b][/size]
+[size=14pt][b]What you owe[/b][/size]
 
-Factions whose markets you smuggle through post [i]personal[/i] bounties - no faction rep consequences, nothing can be proven well enough for open hostilities. Accrual is gated on the market's vanilla smuggling suspicion: transponder-off trading generates none; brazen trading gets you posted. Commissioning a raid through the broker adds a cut of the deposit to the victim's ledger - a raid is loud.
+[b]Off by default[/b] - switch it on in the LunaLib menu or in [tt]settings.json[/tt]. Safe to flip either way mid-campaign: off, every collector stands down and nothing accrues or bills; back on, any sleeping balance wakes with its notice and grace periods restarted.
 
-The ledgers are per faction - you buy your way off each list separately, at a premium - but the hunters are freelancers who collect from every poster at once, and everything on their side works off the [b]combined[/b] price:
+Smuggling through a faction's black market doesn't put a price on your head - it puts you in a ledger. What they lost isn't the cargo, it's the 30% tariff they'd have collected had it crossed their docks legally - and that evaded duty becomes a [i]receivable[/i] in your name, which a collection house in independent space buys up cheap and comes to collect. Still no faction rep consequences, because nothing can be proven well enough for open hostilities - just one balance, compounding every month, and people who want it. Accrual is gated on the market's vanilla smuggling suspicion: quiet transponder-off trading generates nothing, brazen trading gets you billed. Commissioning a raid through the broker adds a cut of the deposit - a raid is loud.
+
+[b]There is no pay-off button.[/b] Not on the intel screen, not at a market, not through your contacts. It is settled fleet-to-fleet, in the interaction dialog, when a collector catches you.
 
 [list]
-[li]The pool activates once it clears the floor [i]and[/i] funds hunters worth taking on your current fleet. A formidable fleet deters hunters - but the deterrence is uncapped in reverse, and a big enough price always finds takers.[/li]
-[li]While too small to draw hunters, every ledger [b]festers[/b] at a higher rate. Ignoring a small price on your head only lets it ripen.[/li]
-[li]A throwaway decoy fleet [b]freezes[/b] the bounty instead - the contract is your fleet destroyed, and nobody burns a hunt on a worthless prize.[/li]
-[li]Hunter fleets scale with the pool, up to several hunting concurrently - and destroying one raises [b]every[/b] poster's bounty. No rep impact either way.[/li]
+[li][b]One collector, sized off your fleet, not off the money.[/b] There is only ever one collector fleet, sent at full strength from the first day - 1.2x your combat fleet points, no ladder of baby fleets, no escalation, no second crew while the first is alive. A two-frigate captain gets sent something they can fight, never a doomstack, and no collector fields a hull class more than one step above your biggest warship.[/li]
+[li][b]Pay, take terms, fight, or cut the link.[/b] Terms are on the table even at zero credits: the balance becomes a monthly repayment drawn through the vanilla monthly report, and collectors stop coming entirely while it runs. Miss enough of them and they stop being patient. Running is allowed - a small fleet needs an out - and the same crew simply keeps hunting.[/li]
+[li][b]Lose the fight and they collect anyway.[/b] Boarding parties take credits first, then cargo by value, until the balance is covered - and the balance drops by what they took. Never your people, never your AI cores, never your last supplies and fuel.[/li]
+[li][b]Kill every officer and the debt dies with them.[/b] The contract lives in the crew's officers - the captain's flagship and every hull with an officer aboard. Finish all of them, however many fights it takes, and there is nobody left to collect: the balance is written off. Let one get away and they find you again.[/li]
+[li][b]Stop paying and the house cuts its losses.[/b] Default on your terms and your paper is sold, at a discount, to people who do not keep books. Interest doubles. The collectors are real pirates now, in pirate colours - and being their patron does not exempt you from being their debtor. (Or flip one setting and the house sells the moment you finish its crew, so the pirate crew is the one you have to kill.)[/li]
+[li][b]They quote numbers they made up.[/b] A third again to more than double, rounded to something suspiciously round - with your own balance printed right beside it, every time. A story point calls them on it, and the audit is permanent: no crew tries an invented figure on you again.[/li]
 [/list]
+
+And agreeing to a figure [b]makes it[/b] the balance. Sign for the lie and the lie is what you owe from then on. The true number was on screen the whole time.
 
 [hr]
 
@@ -83,8 +89,9 @@ The ledgers are per faction - you buy your way off each list separately, at a pr
 
 [list]
 [li]Tier 3+ bases field extra medium/heavy patrols, bigger fleets, and a tier-scaled garrison - a tier 5 base is a fortress, not a bare station.[/li]
+[li]Base bounties scale with tier to match: 40/105/170/235/300k at defaults instead of vanilla's 40-80k, so a tier 5 fortress pays like one. Configurable, or switch off for vanilla figures.[/li]
 [li]The "Pirate War Chest" intel screen is a full balance sheet: chest, income streams, operating bases, savings toward the next base, the recent ledger - and exactly how much of the pirate war economy [b]you[/b] bankrolled.[/li]
-[li]Machine factions (the Remnants and their like) are outside the underworld economy: no tithe, no commission raids against them, no bounties from them.[/li]
+[li]Machine factions (the Remnants and their like) are outside the underworld economy: no tithe, no commission raids against them, and nothing you take from them ever turns into a debt.[/li]
 [li]Kept vanilla: per-base raid strength and cadence, tier progression, station restoration, the post-kill respawn freeze, the first-year grace period.[/li]
 [/list]
 
@@ -103,6 +110,7 @@ Everything above is tunable. With [url=https://fractalsoftworks.com/forum/index.
 [li][b]LunaLib[/b] - optional, for the in-game config menu[/li]
 [li]Vanilla-only - no other hard dependencies[/li]
 [li]Safe to [b]add[/b] to an existing save: existing raiding bases are adopted as-is[/li]
+[li]Safe to [b]update[/b] from v0.1.0: any personal bounties still standing against you are consolidated into one debt held by the collection house. With the debt system off (the default) it just sleeps; switch the system on and the notice and grace periods start from that day[/li]
 [li]Colony-crisis bases, Hostile Activity, Kanta's Protection and Piracy Respite are untouched[/li]
 [li]Overrides the cpc/hmdf rows of person_missions.csv with subclasses (behavior unchanged) - flag if another mod edits those[/li]
 [/list]
@@ -110,6 +118,17 @@ Everything above is tunable. With [url=https://fractalsoftworks.com/forum/index.
 [hr]
 
 [size=14pt][b]Changelog[/b][/size]
+
+[b]v0.2.0[/b]
+[list]
+[li]Personal bounties replaced by [b]the debt[/b] (optional, off by default): one transferable, interest-bearing balance, settled only fleet-to-fleet when a collector catches you. No pay-off button anywhere. Safe to switch on or off mid-campaign.[/li]
+[li]Collector fleets are sized off your own combat fleet points instead of off the money owed, which kills the old doomstack-versus-two-frigates problem at the root.[/li]
+[li]Lose a stand-up fight to a collector and they collect by force - credits, then cargo - against the balance.[/li]
+[li]One collector fleet at full strength, and the debt dies with its officers: destroy every officered ship and the balance is written off.[/li]
+[li]Default on your terms and the house sells your paper to the pirates, who quote figures they made up. A story point audits them honest, permanently.[/li]
+[li]Existing bounties migrate into a debt on load - dormant until the debt system is switched on.[/li]
+[li]Pirate base bounties scale with tier (40k up to 300k at defaults) to match the scaled defenses.[/li]
+[/list]
 
 [b]v0.1.0[/b]
 [list]

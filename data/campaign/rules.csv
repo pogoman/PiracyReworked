@@ -2,3 +2,19 @@ id,trigger,conditions,script,text,options,notes
 piratepatBrokerOption,PopulateOptions,"$isPerson
 PiratepatBrokerCMD isBrokerContact",,,6:piratepatBroker:Ask about having hard-to-find hardware sourced,broker option on underworld contacts
 piratepatBrokerOpen,DialogOptionSelected,$option == piratepatBroker,PiratepatBrokerCMD open,,,opens the broker conversation
+"# pirate debt collectors - all option ids are Strings, all options are built in Java",,,,,,
+piratepatDebtHail,BeginFleetEncounter,"$piratepat_collector score:1000
+!$piratepat_debtHandled
+!$piratepat_settled
+!$ignorePlayerCommRequests
+PiratepatDebtCMD hasDebt","$piratepat_debtHandled = true 0
+PiratepatDebtCMD encounter
+HailPlayer",,,"a collector intercepts; the handled flag is set with expire 0 so it lasts exactly one dialog and falsifies this row on every re-entry. No FleetDesc: with makeNoRepImpact set it would print a no-reputation-change line that the mod's own reputation effect for destroying the crew makes untrue"
+piratepatDebtComms,OpenCommLink,$entity.piratepat_debtHandled score:1000,"$entity.ignorePlayerCommRequests = true 0
+PiratepatDebtCMD greet",,,"the fleet commander is the active person at OpenCommLink, so LOCAL is the person and $entity. is mandatory for the fleet"
+piratepatDebtPaySel,DialogOptionSelected,$option == piratepat_debtPay,PiratepatDebtCMD pay,,,pay the quoted figure or sign for whatever is left of it
+piratepatDebtChalSel,DialogOptionSelected,$option == piratepat_debtChallenge,PiratepatDebtCMD challenge,,,"story-point option; the engine spends the point on confirmation and then dispatches here, so the audit lives in the handler and not in confirm()"
+piratepatDebtFightSel,DialogOptionSelected,$option == piratepat_debtFight,PiratepatDebtCMD fight,"The link cuts mid-word. Across the gap, gun ports come open in a ragged line.",,text prints before the script - FireBest.applyRule adds the text then runs the script
+piratepatDebtLeaveSel,DialogOptionSelected,$option == piratepat_debtLeave,PiratepatDebtCMD leave,,,cutting the link is allowed and priced - it costs a duck
+piratepatDebtDoneSel,DialogOptionSelected,$option == piratepat_debtDone,EndConversation NO_CONTINUE,,,"terminal exit after paying or signing; ours rather than vanilla cutCommLinkNoText so every debt exit uses NO_CONTINUE"
+PiratepatCollectorBeaten,PiratepatCollectorBeaten,,PiratepatDebtCMD wonFight,,,"defeat trigger, registered on every collector at spawn so it fires however the battle was entered. Fires on ANY won battle, wiped out or not; wonFight applies the officer rule and re-arms the trigger (the FID consumes it) while an officer is still alive"
